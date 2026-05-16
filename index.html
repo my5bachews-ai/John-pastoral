@@ -1,0 +1,2116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="John">
+<meta name="theme-color" content="#fcfaf6">
+<link rel="manifest" href="john-manifest.json">
+<title>John — Pastoral Assistant</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fcfaf6;--bg2:#f5f2eb;--surface:#fff;
+  --border:#e8e3d9;--border2:#d4cec4;
+  --text:#1c1917;--text2:#57534e;--muted:#a8a29e;
+  --orange:#c2410c;--ol:#ea580c;
+  --obg:rgba(194,65,12,.07);--oborder:rgba(194,65,12,.2);
+  --red:#b91c1c;--rbg:rgba(185,28,28,.07);--rborder:rgba(185,28,28,.18);
+  --green:#15803d;--gbg:rgba(21,128,61,.07);--gborder:rgba(21,128,61,.2);
+  --sw:232px;--r:12px;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px}
+
+/* ── Shell ── */
+.shell{display:flex;height:100vh}
+
+/* ── Sidebar ── */
+.sidebar{
+  width:var(--sw);background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;flex-shrink:0;overflow:hidden
+}
+.sid-top{
+  height:56px;display:flex;align-items:center;gap:9px;
+  padding:0 16px;border-bottom:1px solid var(--border);flex-shrink:0
+}
+.sid-heart svg{width:18px;height:18px}
+.sid-name{font-size:16px;font-weight:700;color:var(--text);letter-spacing:-.03em}
+.sid-dot{width:6px;height:6px;border-radius:50%;background:var(--green);margin-left:auto}
+
+/* Emergency */
+.emg{
+  margin:10px 12px 0;padding:9px 12px;
+  background:var(--rbg);border:1px solid var(--rborder);
+  border-left:3px solid var(--red);border-radius:8px;
+  cursor:pointer;transition:background .14s;flex-shrink:0
+}
+.emg:hover{background:rgba(185,28,28,.12)}
+.emg-label{font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.07em}
+.emg-sub{font-size:12px;color:var(--text2);margin-top:2px}
+
+/* Voice / wake dot in sidebar */
+.voice-row{
+  display:flex;align-items:center;justify-content:space-between;
+  margin:10px 12px 0;padding:7px 10px;
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:7px;cursor:pointer;font-size:12px;color:var(--text2);
+  flex-shrink:0;transition:border-color .14s
+}
+.voice-row:hover,.voice-row.on{border-color:var(--orange);color:var(--orange);background:var(--obg)}
+.vbars{display:flex;gap:2px;align-items:center;height:12px}
+.vbar{width:2px;height:4px;border-radius:2px;background:currentColor}
+.voice-row.on .vbar:nth-child(1){animation:vb .6s ease infinite}
+.voice-row.on .vbar:nth-child(2){animation:vb .6s ease infinite .15s}
+.voice-row.on .vbar:nth-child(3){animation:vb .6s ease infinite .07s}
+@keyframes vb{0%,100%{height:3px}50%{height:11px}}
+
+/* Nav */
+.sid-nav{flex:1;overflow-y:auto;padding:14px 10px}
+.sid-nav::-webkit-scrollbar{width:3px}
+.sid-nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.ng{margin-bottom:18px}
+.ng-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);padding:0 8px;margin-bottom:4px}
+.ni{
+  display:flex;align-items:center;justify-content:space-between;
+  width:100%;padding:8px 10px;border:none;background:transparent;
+  text-align:left;font-family:inherit;font-size:13px;color:var(--text2);
+  cursor:pointer;border-radius:6px;margin-bottom:1px;
+  transition:all .12s;border-left:2px solid transparent
+}
+.ni:hover{background:var(--bg2);color:var(--text)}
+.ni.active{background:var(--obg);color:var(--orange);border-left-color:var(--orange);font-weight:500}
+.ni-badge{font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:10px;background:var(--red);color:white}
+.ni-new{font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:10px;background:var(--green);color:white}
+
+/* Conversations */
+.conv-area{padding:10px 12px 14px;border-top:1px solid var(--border);flex-shrink:0}
+.conv-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.conv-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.new-chat-btn{font-size:11px;padding:3px 9px;border:1px solid var(--border2);border-radius:5px;
+  background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;transition:all .12s}
+.new-chat-btn:hover{border-color:var(--orange);color:var(--orange)}
+.ri{padding:6px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:color .12s}
+.ri:last-child{border:none}
+.ri:hover .ri-title{color:var(--orange)}
+.ri.active .ri-title{color:var(--orange)}
+.ri-title{font-size:12px;color:var(--text2);line-height:1.3;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ri-time{font-size:10.5px;color:var(--muted);margin-top:1px;
+  display:flex;justify-content:space-between}
+
+/* Profile badge */
+.profile-badge{margin:10px 12px 0;padding:9px 12px;
+  background:var(--bg);border:1px solid var(--border);border-radius:8px;flex-shrink:0}
+.pb-name{font-size:12.5px;font-weight:600;color:var(--text)}
+.pb-church{font-size:11.5px;color:var(--text2);margin-top:1px}
+.pb-edit{font-size:11px;color:var(--orange);cursor:pointer;margin-top:3px;display:inline-block}
+.pb-edit:hover{text-decoration:underline}
+
+/* ── Main ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+
+/* Topbar */
+.topbar{
+  height:56px;background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 24px;gap:12px;flex-shrink:0
+}
+.tb-date{font-size:13px;font-weight:600;color:var(--text);flex:1;letter-spacing:-.01em}
+.ag-tag{font-size:10.5px;font-weight:600;color:var(--red);background:var(--rbg);
+  border:1px solid var(--rborder);border-radius:4px;padding:3px 9px;letter-spacing:.04em}
+
+/* Wake dot — minimal, topbar */
+.wake-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--muted);
+  flex-shrink:0;cursor:pointer;transition:all .2s;position:relative
+}
+.wake-dot.on{background:var(--orange);animation:wdpulse 1.4s ease infinite}
+.wake-dot.triggered{background:var(--green)}
+.wake-dot:hover::after{
+  content:attr(data-tip);position:absolute;right:14px;top:-4px;
+  background:var(--text);color:white;font-size:11px;padding:4px 9px;
+  border-radius:6px;white-space:nowrap;pointer-events:none
+}
+@keyframes wdpulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:.6}}
+
+/* User avatar */
+.tu{
+  display:flex;align-items:center;gap:7px;padding:4px 8px 4px 5px;
+  background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  cursor:pointer;transition:border-color .14s
+}
+.tu:hover{border-color:var(--orange)}
+.tu-av{width:26px;height:26px;border-radius:6px;background:var(--text);
+  color:white;display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;flex-shrink:0}
+.tu-name{font-size:12px;font-weight:600;color:var(--text)}
+.tu-role{font-size:10px;color:var(--muted)}
+
+/* User menu */
+.user-menu{
+  position:absolute;top:62px;right:20px;z-index:400;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:8px;box-shadow:0 8px 32px rgba(0,0,0,.12);
+  min-width:210px;display:none
+}
+.user-menu.open{display:block;animation:fadeUp .18s ease}
+.um-hdr{padding:8px 10px 12px;border-bottom:1px solid var(--border);margin-bottom:6px}
+.um-name{font-size:13.5px;font-weight:700;color:var(--text)}
+.um-role{font-size:11.5px;color:var(--muted);margin-top:1px}
+.um-church{font-size:11.5px;color:var(--text2);margin-top:1px}
+.um-item{display:block;width:100%;padding:8px 10px;background:none;border:none;
+  border-radius:7px;text-align:left;font-family:inherit;font-size:13px;
+  color:var(--text2);cursor:pointer;transition:all .12s}
+.um-item:hover{background:var(--bg2);color:var(--text)}
+.um-item.danger{color:var(--red)}
+.um-item.danger:hover{background:var(--rbg)}
+.um-div{height:1px;background:var(--border);margin:5px 0}
+
+/* Sub banner */
+.sub-banner{
+  background:var(--obg);border-bottom:1px solid var(--oborder);
+  padding:7px 22px;display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;gap:10px
+}
+.sub-banner.hidden{display:none}
+.sb-text{font-size:12.5px;color:var(--orange);font-weight:500}
+.sb-btn{padding:5px 13px;background:var(--orange);border:none;border-radius:6px;
+  color:white;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.sb-close{background:none;border:none;color:var(--orange);cursor:pointer;font-size:16px;padding:0}
+
+/* ── Content ── */
+.content{flex:1;overflow:hidden;display:flex;flex-direction:column;position:relative}
+
+/* ── HERO ── */
+.hero-view{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:36px 24px 16px;overflow:hidden
+}
+.hero-hl{
+  font-size:clamp(22px,3.8vw,36px);font-weight:700;color:var(--text);
+  letter-spacing:-.03em;text-align:center;line-height:1.15;margin-bottom:9px
+}
+.hero-tw{
+  font-size:clamp(13px,1.8vw,16px);color:var(--ol);font-weight:500;
+  text-align:center;margin-bottom:30px;min-height:24px;letter-spacing:-.01em
+}
+
+/* Hero input */
+.hero-box{
+  width:100%;max-width:660px;background:var(--surface);
+  border:1.5px solid var(--border2);border-radius:16px;
+  padding:15px 15px 11px 18px;
+  box-shadow:0 4px 24px rgba(0,0,0,.07);transition:border-color .2s,box-shadow .2s
+}
+.hero-box:focus-within{
+  border-color:var(--orange);box-shadow:0 4px 28px rgba(194,65,12,.11)
+}
+.hero-ta{
+  width:100%;background:transparent;border:none;outline:none;
+  color:var(--text);font-family:inherit;font-size:15px;
+  line-height:1.55;resize:none;min-height:24px;max-height:110px
+}
+.hero-ta::placeholder{color:var(--muted)}
+.hero-bottom{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:9px;padding-top:9px;border-top:1px solid var(--border)
+}
+.hero-mic{background:none;border:none;cursor:pointer;color:var(--muted);
+  padding:5px;border-radius:5px;transition:all .12s}
+.hero-mic:hover,.hero-mic.on{color:var(--orange);background:var(--obg)}
+.hero-mic.on{animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero-send{
+  background:var(--orange);border:none;border-radius:9px;
+  padding:8px 16px;color:white;font-family:inherit;
+  font-size:13.5px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;gap:6px;transition:all .14s
+}
+.hero-send:hover{background:var(--ol);transform:translateY(-1px)}
+
+/* Chips — 5 max */
+.chips{width:100%;max-width:660px;display:flex;flex-wrap:wrap;gap:7px;
+  justify-content:center;margin-top:14px}
+.chip{
+  padding:7px 15px;background:var(--surface);border:1px solid var(--border2);
+  border-radius:20px;font-size:12.5px;color:var(--text2);cursor:pointer;
+  font-family:inherit;transition:all .14s;white-space:nowrap
+}
+.chip:hover{border-color:var(--orange);color:var(--orange);background:var(--obg);transform:translateY(-1px)}
+
+/* ── CHAT ── */
+.chat-view{flex:1;display:none;flex-direction:column;overflow:hidden}
+.chat-messages{
+  flex:1;overflow-y:auto;padding:24px 0;
+  display:flex;flex-direction:column;gap:16px;scroll-behavior:smooth
+}
+.chat-messages::-webkit-scrollbar{width:4px}
+.chat-messages::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+.msg-row{display:flex;justify-content:center;padding:0 22px}
+.msg-inner{width:100%;max-width:680px;display:flex;gap:11px}
+.msg-inner.user{flex-direction:row-reverse}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg-inner{animation:fadeUp .22s ease}
+
+.m-av{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;margin-top:2px;font-size:11px;font-weight:700}
+.m-av.john{background:var(--text);color:white}
+.m-av.user{background:var(--border2);color:var(--text2)}
+
+.m-body{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+.msg-inner.user .m-body{align-items:flex-end}
+.m-name{font-size:10px;color:var(--muted)}
+
+.bubble{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:4px 12px 12px 12px;padding:13px 16px;
+  font-size:14px;line-height:1.76;color:var(--text);
+  white-space:pre-wrap;word-wrap:break-word;max-width:100%
+}
+.msg-inner.user .bubble{
+  background:var(--obg);border-color:var(--oborder);
+  border-radius:12px 4px 12px 12px
+}
+.bubble.emg{background:var(--rbg);border-color:var(--rborder);border-left:3px solid var(--red)}
+
+/* Suggested follow-ups — the Claude-like intelligence layer */
+.suggestions{
+  display:flex;flex-direction:column;gap:5px;margin-top:8px;max-width:100%
+}
+.sug-btn{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 12px;background:var(--bg);
+  border:1px solid var(--border);border-radius:8px;
+  font-family:inherit;font-size:12.5px;color:var(--text2);
+  cursor:pointer;text-align:left;transition:all .12s;width:fit-content;max-width:100%
+}
+.sug-btn:hover{border-color:var(--orange);color:var(--orange);background:var(--obg)}
+.sug-arrow{color:var(--muted);font-size:11px;flex-shrink:0}
+
+/* Speak btn */
+.speak-btn{
+  margin-top:5px;padding:3px 10px;border:1px solid var(--border2);border-radius:20px;
+  background:transparent;font-family:inherit;font-size:11px;color:var(--muted);cursor:pointer;transition:all .12s
+}
+.speak-btn:hover{border-color:var(--orange);color:var(--orange)}
+.speak-btn.active{border-color:var(--orange);color:var(--orange);background:var(--obg)}
+
+/* Doc card */
+.doc-card{
+  display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 13px;
+  background:var(--bg);border:1px solid var(--border2);border-radius:9px;
+  cursor:pointer;text-decoration:none;transition:border-color .12s
+}
+.doc-card:hover{border-color:var(--orange)}
+.dc-type{font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.06em;min-width:28px}
+.dc-name{font-size:13px;font-weight:500;color:var(--text);flex:1}
+.dc-dl{font-size:11.5px;color:var(--orange)}
+
+/* Typing */
+.typing-row{display:flex;justify-content:center;padding:0 22px}
+.typing-inner{width:100%;max-width:680px;display:flex;gap:11px}
+.t-bub{background:var(--surface);border:1px solid var(--border);
+  border-radius:4px 12px 12px 12px;padding:12px 15px;
+  display:flex;align-items:center;gap:4px;margin-top:14px}
+.td{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:td .9s ease infinite}
+.td:nth-child(2){animation-delay:.15s}.td:nth-child(3){animation-delay:.3s}
+@keyframes td{0%,60%,100%{transform:translateY(0);opacity:.35}30%{transform:translateY(-4px);opacity:1}}
+.tw-cursor{display:inline-block;width:2px;height:1em;background:var(--orange);
+  margin-left:1px;vertical-align:middle;animation:blink .7s infinite}
+@keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+
+/* Session divider */
+.s-div{text-align:center;font-size:11px;color:var(--muted);
+  padding:10px 0 4px;border-top:1px solid var(--border);margin-top:8px}
+
+/* Chat input */
+.chat-input-area{
+  padding:13px 20px 16px;background:var(--surface);
+  border-top:1px solid var(--border);flex-shrink:0;
+  display:flex;flex-direction:column;align-items:center
+}
+.ci-wrap{
+  width:100%;max-width:680px;background:var(--bg);
+  border:1.5px solid var(--border2);border-radius:13px;
+  padding:10px 11px 9px 15px;transition:border-color .18s,box-shadow .18s
+}
+.ci-wrap:focus-within{border-color:var(--orange);box-shadow:0 0 0 3px var(--obg)}
+.ci-row{display:flex;align-items:flex-end;gap:8px}
+.ci-ta{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--text);font-family:inherit;font-size:14px;
+  line-height:1.5;resize:none;min-height:22px;max-height:100px
+}
+.ci-ta::placeholder{color:var(--muted)}
+.ci-mic{background:none;border:none;cursor:pointer;color:var(--muted);
+  padding:5px;border-radius:5px;transition:all .12s;flex-shrink:0}
+.ci-mic:hover,.ci-mic.on{color:var(--orange);background:var(--obg)}
+.ci-mic.on{animation:pulse 1s infinite}
+.ci-send{background:var(--orange);border:none;border-radius:8px;
+  padding:7px 8px;cursor:pointer;transition:all .12s;flex-shrink:0}
+.ci-send:hover{background:var(--ol)}
+.ci-chips{width:100%;max-width:680px;display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.ci-chip{padding:5px 12px;background:var(--bg);border:1px solid var(--border);
+  border-radius:20px;font-size:12px;color:var(--text2);cursor:pointer;
+  font-family:inherit;transition:all .12s;white-space:nowrap}
+.ci-chip:hover{border-color:var(--orange);color:var(--orange)}
+
+/* ── Panels ── */
+.panel-view{display:none;flex:1;overflow-y:auto;padding:22px 24px;flex-direction:column;gap:10px}
+.panel-view.open{display:flex}
+.panel-view::-webkit-scrollbar{width:4px}
+.panel-view::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.pv-title{font-size:17px;font-weight:700;color:var(--text);letter-spacing:-.02em}
+.pv-sub{font-size:12px;color:var(--muted);margin-bottom:4px}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:17px 19px;margin-bottom:8px}
+.card-title{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:11px}
+
+/* Stat grid */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:10px}
+.stat-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px}
+.stat-n{font-size:26px;font-weight:700;color:var(--text)}
+.stat-l{font-size:10.5px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.06em}
+.stat-d{font-size:11px;margin-top:4px;font-weight:500}
+.up{color:var(--green)}.dn{color:var(--red)}
+
+/* Sal rows */
+.sal-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.sal-row:last-child{border:none}
+.sal-n{font-size:13.5px;color:var(--text);flex:1}
+.sal-note{font-size:11.5px;color:var(--muted)}
+.sal-tag{font-size:10px;padding:2px 8px;border-radius:10px;background:var(--gbg);color:var(--green);border:1px solid var(--gborder);white-space:nowrap}
+
+/* Bar */
+.bar-row{margin-bottom:9px}
+.bar-lbl{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:3px}
+.bar-track{height:6px;background:var(--bg2);border-radius:10px;overflow:hidden}
+.bar-fill{height:100%;border-radius:10px;background:var(--orange)}
+
+/* Agenda */
+.ag-lbl{font-size:10.5px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
+.ag-row{display:flex;align-items:flex-start;gap:13px;padding:10px 0;border-bottom:1px solid var(--border)}
+.ag-row:last-child{border:none}
+.ag-t{font-size:11px;color:var(--orange);min-width:54px;font-weight:600;margin-top:1px}
+.ag-c{flex:1}
+.ag-n{font-size:13.5px;font-weight:500;color:var(--text)}
+.ag-d{font-size:12px;color:var(--muted);margin-top:2px}
+.ag-pill{font-size:10px;padding:2px 8px;border-radius:10px;white-space:nowrap;border:1px solid var(--border2);color:var(--text2);background:var(--bg2)}
+.ag-pill.svc{background:var(--rbg);color:var(--red);border-color:var(--rborder)}
+.ag-pill.past{background:rgba(37,99,235,.07);color:#1d4ed8;border-color:rgba(37,99,235,.18)}
+.ag-pill.adm{background:var(--obg);color:var(--orange);border-color:var(--oborder)}
+
+/* Prayer */
+.pr-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:8px}
+.pr-card.emg{background:var(--rbg);border-color:var(--rborder);border-left:3px solid var(--red)}
+.pc-hdr{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.pc-name{font-size:13.5px;font-weight:600;color:var(--text);flex:1}
+.pc-cat{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;border:1px solid}
+.c-emg{background:var(--rbg);color:var(--red);border-color:var(--rborder)}
+.c-hlth{background:rgba(37,99,235,.07);color:#1d4ed8;border-color:rgba(37,99,235,.18)}
+.c-fam{background:rgba(124,58,237,.07);color:#6d28d9;border-color:rgba(124,58,237,.18)}
+.c-fin{background:var(--obg);color:var(--orange);border-color:var(--oborder)}
+.c-grief{background:var(--gbg);color:var(--green);border-color:var(--gborder)}
+.c-gen{background:var(--bg2);color:var(--muted);border-color:var(--border2)}
+.pc-req{font-size:13px;color:var(--text2);line-height:1.65}
+.pc-sub{font-size:11px;color:var(--muted);margin-top:6px}
+.pc-acts{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.pc-btn{font-size:11.5px;padding:5px 11px;border-radius:6px;border:1px solid var(--border2);
+  background:var(--bg);color:var(--text2);cursor:pointer;font-family:inherit;transition:all .12s}
+.pc-btn:hover{border-color:var(--orange);color:var(--orange)}
+.pc-btn.red{border-color:var(--rborder);color:var(--red)}
+.pc-btn.red:hover{background:var(--rbg)}
+
+/* Members */
+.db-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.db-search{flex:1;min-width:180px;padding:9px 13px;background:var(--surface);
+  border:1.5px solid var(--border2);border-radius:8px;font-family:inherit;
+  font-size:13.5px;color:var(--text);outline:none;transition:border-color .18s}
+.db-search:focus{border-color:var(--orange)}
+.db-search::placeholder{color:var(--muted)}
+.db-add{padding:9px 16px;background:var(--orange);border:none;border-radius:8px;
+  color:white;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.db-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:14px}
+.db-stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.db-n{font-size:22px;font-weight:700;color:var(--text)}
+.db-l{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+
+.mt{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.mt-head{display:grid;grid-template-columns:2fr 1.2fr 1fr 1fr 1fr 80px;padding:9px 15px;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);gap:8px}
+.mt-row{display:grid;grid-template-columns:2fr 1.2fr 1fr 1fr 1fr 80px;padding:11px 15px;
+  gap:8px;border-bottom:1px solid var(--border);align-items:center;cursor:pointer;transition:background .12s}
+.mt-row:last-child{border:none}
+.mt-row:hover{background:var(--bg2)}
+.mt-name{font-size:13.5px;font-weight:500;color:var(--text)}
+.mt-sub{font-size:11.5px;color:var(--muted);margin-top:1px}
+.mt-cell{font-size:12.5px;color:var(--text2)}
+.mt-status{font-size:10.5px;padding:3px 8px;border-radius:10px;font-weight:600;border:1px solid;display:inline-block}
+.st-active{background:var(--gbg);color:var(--green);border-color:var(--gborder)}
+.st-new{background:var(--obg);color:var(--orange);border-color:var(--oborder)}
+.st-visitor{background:rgba(37,99,235,.07);color:#1d4ed8;border-color:rgba(37,99,235,.18)}
+.st-inactive{background:var(--bg2);color:var(--muted);border-color:var(--border2)}
+.mt-act-btn{font-size:11px;padding:4px 9px;border-radius:5px;border:1px solid var(--border2);
+  background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;transition:all .12s}
+.mt-act-btn:hover{border-color:var(--orange);color:var(--orange)}
+
+/* Travel */
+.fl-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1px solid var(--border);
+  border-radius:8px;margin-bottom:6px;cursor:pointer;background:var(--bg2);transition:all .12s}
+.fl-row:hover{border-color:var(--orange);background:var(--obg)}
+.fl-al{font-size:13px;font-weight:600;color:var(--text);min-width:80px}
+.fl-rt{flex:1;font-size:12.5px;color:var(--text2)}
+.fl-pr{font-size:15px;font-weight:700;color:var(--text)}
+.fl-best{font-size:10px;color:var(--green);font-weight:700;margin-left:5px}
+.ht-row{padding:12px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;background:var(--bg2);transition:all .12s}
+.ht-row:hover{border-color:var(--orange);background:var(--obg)}
+.ht-top{display:flex;align-items:center;justify-content:space-between}
+.ht-n{font-size:13px;font-weight:600;color:var(--text)}
+.ht-p{font-size:14px;font-weight:700;color:var(--text)}
+.ht-d{font-size:12px;color:var(--muted);margin-top:4px}
+.action-btn{width:100%;padding:10px;border:none;border-radius:8px;background:var(--orange);
+  color:white;font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer;margin-top:9px;transition:all .14s}
+.action-btn:hover{background:var(--ol)}
+.ghost-btn{width:100%;padding:10px;border:1px solid var(--border2);border-radius:8px;
+  background:var(--bg2);color:var(--text2);font-family:inherit;font-size:13.5px;cursor:pointer;margin-top:6px;transition:all .14s}
+.ghost-btn:hover{border-color:var(--orange);color:var(--orange)}
+
+/* Encouragement */
+.enc-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:8px}
+.enc-day{font-size:10.5px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.07em;margin-bottom:9px}
+.enc-msg{font-size:14.5px;line-height:1.7;color:var(--text);font-style:italic;margin-bottom:9px}
+.enc-vs{font-size:12.5px;color:var(--text2);margin-bottom:11px}
+.enc-acts{display:flex;gap:6px;flex-wrap:wrap}
+.enc-btn{font-size:12px;padding:6px 12px;border-radius:6px;border:1px solid var(--border2);
+  background:var(--bg2);color:var(--text2);cursor:pointer;font-family:inherit;transition:all .12s}
+.enc-btn:hover{border-color:var(--orange);color:var(--orange)}
+.enc-sent{font-size:11px;color:var(--green);margin-top:7px;display:none;font-weight:500}
+.enc-past{font-size:11px;color:var(--green);font-weight:500}
+
+/* Team */
+.tc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:14px 17px;margin-bottom:8px;display:flex;align-items:center;gap:13px}
+.tc-av{width:38px;height:38px;border-radius:9px;background:var(--text);color:white;
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.tc-info{flex:1}
+.tc-name{font-size:13.5px;font-weight:600;color:var(--text)}
+.tc-role{font-size:12px;color:var(--muted);margin-top:2px}
+.tc-status{font-size:11px;color:var(--green);font-weight:500;margin-top:2px}
+.rb{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;border:1px solid;margin-left:5px}
+.rb-senior{background:var(--obg);color:var(--orange);border-color:var(--oborder)}
+.rb-admin{background:var(--bg2);color:var(--muted);border-color:var(--border2)}
+.rb-other{background:var(--gbg);color:var(--green);border-color:var(--gborder)}
+.tc-btn{font-size:11.5px;padding:5px 11px;border-radius:6px;border:1px solid var(--border2);
+  background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;transition:all .12s}
+.tc-btn:hover{border-color:var(--orange);color:var(--orange)}
+.tc-btn.red{border-color:var(--rborder);color:var(--red)}
+.tc-btn.red:hover{background:var(--rbg)}
+.inv-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:17px;margin-bottom:8px}
+.inv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.fi{display:flex;flex-direction:column;gap:4px}
+.fi label{font-size:11.5px;font-weight:600;color:var(--text2)}
+.fi input,.fi select{padding:9px 12px;background:var(--bg);border:1.5px solid var(--border2);
+  border-radius:8px;font-family:inherit;font-size:13.5px;color:var(--text);outline:none;transition:border-color .15s}
+.fi input:focus,.fi select:focus{border-color:var(--orange)}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;z-index:500;background:rgba(28,25,20,.38);
+  backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  width:100%;max-width:580px;max-height:90vh;overflow-y:auto;box-shadow:0 16px 64px rgba(0,0,0,.14)}
+.modal-card::-webkit-scrollbar{width:4px}
+.modal-card::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.modal-hdr{padding:20px 22px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:flex-start;justify-content:space-between}
+.modal-title{font-size:17px;font-weight:700;color:var(--text);letter-spacing:-.02em}
+.modal-sub{font-size:12.5px;color:var(--muted);margin-top:3px}
+.modal-close{background:var(--bg);border:1px solid var(--border2);border-radius:6px;
+  padding:5px 10px;cursor:pointer;font-size:12px;color:var(--text2);font-family:inherit;transition:all .12s}
+.modal-close:hover{border-color:var(--orange);color:var(--orange)}
+.modal-body{padding:18px 22px}
+.modal-sec{margin-bottom:18px}
+.modal-sec-title{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:9px}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field-box{display:flex;flex-direction:column;gap:3px}
+.field-label{font-size:11px;color:var(--muted)}
+.field-val{font-size:13.5px;color:var(--text);font-weight:500}
+.field-input{padding:8px 12px;background:var(--bg);border:1px solid var(--border2);
+  border-radius:7px;font-family:inherit;font-size:13.5px;color:var(--text);outline:none;transition:border-color .15s}
+.field-input:focus{border-color:var(--orange)}
+.field-select{padding:8px 12px;background:var(--bg);border:1px solid var(--border2);
+  border-radius:7px;font-family:inherit;font-size:13.5px;color:var(--text);outline:none}
+.field-ta{padding:8px 12px;background:var(--bg);border:1px solid var(--border2);
+  border-radius:7px;font-family:inherit;font-size:13px;color:var(--text);outline:none;
+  resize:none;width:100%;line-height:1.6;transition:border-color .15s}
+.field-ta:focus{border-color:var(--orange)}
+.note-entry{padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:7px;margin-bottom:6px}
+.note-date{font-size:10.5px;color:var(--muted);margin-bottom:2px}
+.note-text{font-size:13px;color:var(--text2);line-height:1.55}
+.modal-footer{padding:13px 22px 18px;display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--border)}
+.mf-btn{padding:9px 17px;border-radius:8px;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all .14s}
+.mf-primary{background:var(--orange);border:none;color:white}
+.mf-primary:hover{background:var(--ol)}
+.mf-ghost{background:transparent;border:1px solid var(--border2);color:var(--text2)}
+.mf-ghost:hover{border-color:var(--orange);color:var(--orange)}
+.mf-danger{background:transparent;border:1px solid var(--rborder);color:var(--red);margin-left:auto}
+.mf-danger:hover{background:var(--rbg)}
+
+/* ── Auth ── */
+.auth-screen{position:fixed;inset:0;z-index:2000;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;padding:20px}
+.auth-logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:30px}
+.auth-logo svg{width:22px;height:22px}
+.auth-logo-name{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-.03em}
+.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;
+  padding:28px 24px;width:100%;max-width:380px;box-shadow:0 8px 40px rgba(0,0,0,.08)}
+.a-label{font-size:11.5px;font-weight:600;color:var(--text2);margin-bottom:5px;display:block}
+.a-input{width:100%;padding:13px 14px;background:var(--bg);border:1.5px solid var(--border2);
+  border-radius:11px;font-family:inherit;font-size:16px;color:var(--text);outline:none;
+  transition:border-color .18s;margin-bottom:11px}
+.a-input:focus{border-color:var(--orange)}
+.a-input::placeholder{color:var(--muted)}
+.a-select{width:100%;padding:13px 14px;background:var(--bg);border:1.5px solid var(--border2);
+  border-radius:11px;font-family:inherit;font-size:16px;color:var(--text);outline:none;margin-bottom:11px}
+.a-btn{width:100%;padding:14px;border:none;border-radius:11px;background:var(--orange);
+  color:white;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;transition:all .14s;margin-top:4px}
+.a-btn:hover{background:var(--ol);transform:translateY(-1px)}
+.a-user-btn{display:flex;align-items:center;gap:12px;padding:12px 13px;background:var(--bg);
+  border:1.5px solid var(--border2);border-radius:11px;cursor:pointer;width:100%;
+  font-family:inherit;margin-bottom:8px;transition:all .12s}
+.a-user-btn:hover{border-color:var(--orange);background:var(--obg)}
+.a-av{width:36px;height:36px;border-radius:9px;background:var(--text);color:white;
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.a-uname{font-size:14px;font-weight:600;color:var(--text);text-align:left}
+.a-urole{font-size:12px;color:var(--muted);text-align:left}
+.a-err{background:var(--rbg);border:1px solid var(--rborder);border-radius:8px;
+  padding:9px 13px;font-size:13px;color:var(--red);margin-bottom:11px;display:none}
+.a-div{text-align:center;font-size:12px;color:var(--muted);margin:12px 0;position:relative}
+.a-div::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:var(--border)}
+.a-div span{background:var(--surface);padding:0 10px;position:relative}
+
+/* ── Onboarding ── */
+.ob-overlay{position:fixed;inset:0;z-index:1000;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;padding:20px}
+.ob-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;
+  width:100%;max-width:520px;padding:36px 40px;box-shadow:0 8px 48px rgba(0,0,0,.1)}
+.ob-logo{display:flex;align-items:center;gap:9px;margin-bottom:24px}
+.ob-logo svg{width:20px;height:20px}
+.ob-logo-name{font-size:17px;font-weight:700;color:var(--text);letter-spacing:-.03em}
+.ob-prog{display:flex;gap:5px;margin-bottom:26px}
+.ob-pip{height:3px;border-radius:3px;flex:1;background:var(--border2);transition:background .3s}
+.ob-pip.done{background:var(--orange)}
+.ob-step{display:none}
+.ob-step.active{display:block;animation:fadeUp .22s ease}
+.ob-tag{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);margin-bottom:6px}
+.ob-q{font-size:21px;font-weight:700;color:var(--text);letter-spacing:-.03em;line-height:1.25;margin-bottom:6px}
+.ob-note{font-size:13.5px;color:var(--text2);line-height:1.6;margin-bottom:20px}
+.ob-input{width:100%;padding:12px 15px;background:var(--bg);border:1.5px solid var(--border2);
+  border-radius:10px;font-family:inherit;font-size:15px;color:var(--text);outline:none;
+  transition:border-color .18s;margin-bottom:8px}
+.ob-input:focus{border-color:var(--orange)}
+.ob-input::placeholder{color:var(--muted)}
+.ob-opts{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px}
+.ob-opt{padding:8px 16px;border:1.5px solid var(--border2);border-radius:20px;
+  font-family:inherit;font-size:13px;color:var(--text2);background:var(--bg);cursor:pointer;transition:all .14s}
+.ob-opt:hover{border-color:var(--orange);color:var(--orange)}
+.ob-opt.sel{border-color:var(--orange);background:var(--obg);color:var(--orange);font-weight:500}
+.ob-next{width:100%;padding:13px;border:none;border-radius:10px;background:var(--orange);
+  color:white;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;
+  transition:all .14s;margin-top:14px}
+.ob-next:hover{background:var(--ol);transform:translateY(-1px)}
+.ob-skip{display:block;text-align:center;margin-top:11px;font-size:12px;color:var(--muted);cursor:pointer}
+.ob-skip:hover{color:var(--text2)}
+
+/* Profile badge */
+.profile-badge{margin:10px 12px 0;padding:9px 12px;background:var(--bg);
+  border:1px solid var(--border);border-radius:8px;flex-shrink:0}
+.pb-name{font-size:12.5px;font-weight:600;color:var(--text)}
+.pb-church{font-size:11.5px;color:var(--text2);margin-top:1px}
+.pb-edit{font-size:11px;color:var(--orange);cursor:pointer;margin-top:3px;display:inline-block}
+.pb-edit:hover{text-decoration:underline}
+
+/* In-app alert */
+@keyframes slideInRight{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+
+@media(max-width:680px){
+  .sidebar{display:none}
+  .hero-hl{font-size:22px}
+  .hero-view{padding:20px 14px}
+  .panel-view{padding:14px}
+  .mt-head,.mt-row{grid-template-columns:2fr 1fr 1fr 70px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ══ SIDEBAR ══ -->
+<div class="sidebar">
+  <div class="sid-top">
+    <div class="sid-heart">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#c2410c"/></svg>
+    </div>
+    <div class="sid-name">John</div>
+    <div class="sid-dot"></div>
+  </div>
+
+  <div class="profile-badge" id="profileBadge" style="display:none">
+    <div class="pb-name" id="pb-name"></div>
+    <div class="pb-church" id="pb-church"></div>
+    <span class="pb-edit" onclick="resetOnboarding()">Edit profile</span>
+  </div>
+
+  <div class="emg" id="emgStrip" onclick="openPanel('prayer')">
+    <div class="emg-label">2 Emergency Requests</div>
+    <div class="emg-sub">Martinez · Holloway — tap to review</div>
+  </div>
+
+  <div class="voice-row" id="voiceRow" onclick="toggleVoice()">
+    <span id="voiceLbl">Voice off</span>
+    <div class="vbars"><div class="vbar"></div><div class="vbar"></div><div class="vbar"></div></div>
+  </div>
+
+  <nav class="sid-nav">
+    <div class="ng">
+      <div class="ng-label">Ministry</div>
+      <button class="ni active" onclick="navTo(this,'home')">Home</button>
+      <button class="ni" onclick="navTo(this,'agenda')">Today's Agenda</button>
+      <button class="ni" onclick="navTo(this,'sunday')">Sunday Report<span class="ni-new" style="margin-left:auto">New</span></button>
+      <button class="ni" onclick="navTo(this,'encourage')">Staff Encouragement</button>
+    </div>
+    <div class="ng">
+      <div class="ng-label">People</div>
+      <button class="ni" onclick="navTo(this,'members')">Members<span class="ni-badge" style="margin-left:auto">3</span></button>
+      <button class="ni" onclick="navTo(this,'prayer')">Prayer Requests<span class="ni-badge" style="margin-left:auto">!</span></button>
+    </div>
+    <div class="ng">
+      <div class="ng-label">Operations</div>
+      <button class="ni" onclick="navTo(this,'travel')">Book Travel</button>
+      <button class="ni" onclick="navTo(this,'team')">Team</button>
+      <button class="ni" onclick="window.open('john-notifications.html')">Notifications</button>
+      <button class="ni" onclick="window.open('john-billing.html')">Billing</button>
+    </div>
+  </nav>
+
+  <div class="conv-area">
+    <div class="conv-hdr">
+      <div class="conv-lbl">Conversations</div>
+      <button class="new-chat-btn" onclick="sessionNew()">New</button>
+    </div>
+    <div id="conv-list"></div>
+  </div>
+</div>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+  <div class="topbar">
+    <!-- Brand lives in topbar - Lovable style -->
+    <div style="display:flex;align-items:center;gap:9px;width:var(--sw);flex-shrink:0;
+      padding-right:16px;border-right:1px solid var(--border);height:100%;margin-left:-24px;padding-left:16px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#c2410c"/></svg>
+      <span style="font-size:16px;font-weight:700;color:var(--text);letter-spacing:-.03em">John</span>
+      <div style="width:6px;height:6px;border-radius:50%;background:var(--green);margin-left:2px"></div>
+    </div>
+    <div class="tb-date" id="topDate" style="padding-left:20px"></div>
+    <!-- Wake dot — minimal -->
+    <div class="wake-dot" id="wakeDot" onclick="toggleWakeWord()"
+      data-tip="Say Hey John · Click to enable"></div>
+    <div class="tu" id="topbarUser" onclick="toggleUserMenu()">
+      <div class="tu-av" id="tu-av">?</div>
+      <div>
+        <div class="tu-name" id="tu-name">Sign In</div>
+        <div class="tu-role" id="tu-role"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User menu -->
+  <div class="user-menu" id="userMenu">
+    <div class="um-hdr">
+      <div class="um-name" id="um-name">—</div>
+      <div class="um-role" id="um-role">—</div>
+      <div class="um-church" id="um-church">—</div>
+    </div>
+    <button class="um-item" onclick="resetOnboarding();closeUserMenu()">Edit Church Profile</button>
+    <button class="um-item" onclick="navTo(null,'team');closeUserMenu()">Manage Team</button>
+    <button class="um-item" onclick="window.open('john-billing.html');closeUserMenu()">Billing</button>
+    <button class="um-item" onclick="window.open('john-notifications.html');closeUserMenu()">Notifications</button>
+    <div class="um-div"></div>
+    <button class="um-item" onclick="switchUser();closeUserMenu()">Switch User</button>
+    <button class="um-item danger" onclick="logout();closeUserMenu()">Sign Out</button>
+  </div>
+
+  <!-- Sub banner -->
+  <div class="sub-banner hidden" id="subBanner">
+    <div class="sb-text" id="subBannerText"></div>
+    <button class="sb-btn" onclick="window.open('john-billing.html')">Upgrade</button>
+    <button class="sb-close" onclick="this.parentElement.classList.add('hidden')">×</button>
+  </div>
+
+  <div class="content">
+
+    <!-- HERO / HOME -->
+    <div class="hero-view" id="heroView">
+      <div class="hero-hl" id="heroHl">Good morning, Pastor.<br>Ready to serve. Let's begin.</div>
+      <div class="hero-tw" id="typewriter"></div>
+
+      <div class="hero-box">
+        <textarea class="hero-ta" id="heroInput"
+          placeholder="Ask John anything — sermon prep, member care, theology, travel…"
+          rows="2" onkeydown="heroKey(event)" oninput="autoR(this)"></textarea>
+        <div class="hero-bottom">
+          <button class="hero-mic" id="heroMic" onclick="toggleMic('hero')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </button>
+          <button class="hero-send" onclick="heroSend()">
+            Send
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 5 chips max -->
+      <div class="chips">
+        <button class="chip" onclick="chipSend('Plan this Sunday\'s service')">Sunday Service</button>
+        <button class="chip" onclick="chipSend('I have a newcomer to follow up with')">Newcomer Follow-up</button>
+        <button class="chip" onclick="chipSend('Write a sermon outline on: ')">Sermon Prep</button>
+        <button class="chip" onclick="chipSend('I need to book travel for ministry')">Book Travel</button>
+        <button class="chip" onclick="chipSend('Explain AG doctrine on Spirit Baptism')">AG Doctrine</button>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="chat-view" id="chatView">
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input-area">
+        <div class="ci-wrap">
+          <div class="ci-row">
+            <button class="ci-mic" id="chatMic" onclick="toggleMic('chat')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </button>
+            <textarea class="ci-ta" id="chatInput" placeholder="Ask John…"
+              rows="1" onkeydown="chatKey(event)" oninput="autoR(this)"></textarea>
+            <button class="ci-send" onclick="chatSend()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="ci-chips">
+          <button class="ci-chip" onclick="chatChip('Plan Sunday service')">Sunday</button>
+          <button class="ci-chip" onclick="chatChip('Newcomer follow-up message')">Newcomer</button>
+          <button class="ci-chip" onclick="chatChip('AG doctrine')">AG Doctrine</button>
+          <button class="ci-chip" onclick="chatChip('Funeral or wedding message')">Ceremony</button>
+          <button class="ci-chip" onclick="chatChip('Build a document or report')">Document</button>
+          <button class="ci-chip" onclick="chatChip('What can you help me with today?')">What can you do?</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AGENDA PANEL -->
+    <div class="panel-view" id="panel-agenda">
+      <div class="pv-title" id="ag-title">Today's Agenda</div>
+      <div class="pv-sub" id="ag-sub"></div>
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <button class="ci-chip" id="ag-today-btn" onclick="renderAgenda('today')" style="border-color:var(--orange);color:var(--orange)">Today</button>
+        <button class="ci-chip" id="ag-week-btn" onclick="renderAgenda('week')">Next Week</button>
+      </div>
+      <div id="ag-body"></div>
+    </div>
+
+    <!-- SUNDAY REPORT -->
+    <div class="panel-view" id="panel-sunday">
+      <div class="pv-title">Sunday Report</div>
+      <div class="pv-sub">Week of <span id="sunday-date"></span> · Generated by John</div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-n">247</div><div class="stat-l">Attendance</div><div class="stat-d up">+18</div></div>
+        <div class="stat-box"><div class="stat-n">7</div><div class="stat-l">Salvations</div><div class="stat-d up">+3</div></div>
+        <div class="stat-box"><div class="stat-n">14</div><div class="stat-l">First-Time Guests</div><div class="stat-d up">+5</div></div>
+        <div class="stat-box"><div class="stat-n">31</div><div class="stat-l">Altar Responses</div><div class="stat-d up">+9</div></div>
+        <div class="stat-box"><div class="stat-n">$8,420</div><div class="stat-l">Tithes & Offerings</div><div class="stat-d up">+$1,240</div></div>
+        <div class="stat-box"><div class="stat-n">89</div><div class="stat-l">Children's Ministry</div><div class="stat-d dn">-4</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Salvations This Sunday</div>
+        <div class="sal-row"><div class="sal-n">Marcus Williams</div><div class="sal-note">Altar call — 1st service</div><span class="sal-tag">Saved</span></div>
+        <div class="sal-row"><div class="sal-n">Denise & Robert Okafor</div><div class="sal-note">Came with Tina Brooks</div><span class="sal-tag">Saved</span></div>
+        <div class="sal-row"><div class="sal-n">Jordan Lee (16)</div><div class="sal-note">Youth crossover — 2nd service</div><span class="sal-tag">Saved</span></div>
+        <div class="sal-row"><div class="sal-n">Patricia Nguyen</div><div class="sal-note">Recommitment</div><span class="sal-tag">Rededicated</span></div>
+        <div class="sal-row"><div class="sal-n">Darnell Thomas</div><div class="sal-note">Wife praying 2 years</div><span class="sal-tag">Saved</span></div>
+        <div class="sal-row"><div class="sal-n">Aaliyah & Camille</div><div class="sal-note">Sisters, walked in alone</div><span class="sal-tag">Saved ×2</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Attendance by Service</div>
+        <div class="bar-row"><div class="bar-lbl"><span>1st Service</span><span>138</span></div><div class="bar-track"><div class="bar-fill" style="width:80%"></div></div></div>
+        <div class="bar-row"><div class="bar-lbl"><span>2nd Service</span><span>109</span></div><div class="bar-track"><div class="bar-fill" style="width:63%"></div></div></div>
+        <div class="bar-row"><div class="bar-lbl"><span>Children's Ministry</span><span>89</span></div><div class="bar-track"><div class="bar-fill" style="width:52%"></div></div></div>
+        <div class="bar-row"><div class="bar-lbl"><span>Youth</span><span>41</span></div><div class="bar-track"><div class="bar-fill" style="width:24%"></div></div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">John's Notes</div>
+        <p style="font-size:13.5px;color:var(--text2);line-height:1.7">Spirit moved powerfully in both services. The Acts 2 message landed — several came forward before the altar call began. Marcus Williams needs immediate discipleship. Okafor family came through Tina Brooks — personal call recommended this week.</p>
+        <button class="ghost-btn" onclick="chatChip('Generate a formal Sunday board report based on this week\'s numbers')">Generate Board Report</button>
+      </div>
+    </div>
+
+    <!-- PRAYER PANEL -->
+    <div class="panel-view" id="panel-prayer">
+      <div class="pv-title">Prayer Requests</div>
+      <div class="pv-sub">Tuesday Report · 2 Emergency Flags · <span id="prayer-date"></span></div>
+      <div class="pr-card emg">
+        <div class="pc-hdr"><div class="pc-name">Gloria Martinez</div><span class="pc-cat c-emg">Emergency</span></div>
+        <div class="pc-req">Husband rushed to ICU — stroke. Alone at Regional Medical. Children flying in.</div>
+        <div class="pc-sub">Today 6:14 AM · Via family member</div>
+        <div class="pc-acts">
+          <button class="pc-btn red" onclick="chatChip('Help me prepare for a hospital crisis visit with Sister Gloria Martinez whose husband had a stroke')">Prepare Visit</button>
+          <button class="pc-btn" onclick="chatChip('Draft an emergency prayer chain for Gloria Martinez\'s husband')">Prayer Chain</button>
+          <button class="pc-btn" onclick="chatChip('Write a compassionate pastoral message to Gloria Martinez')">Message Her</button>
+        </div>
+      </div>
+      <div class="pr-card emg">
+        <div class="pc-hdr"><div class="pc-name">James Holloway Jr.</div><span class="pc-cat c-emg">Emergency</span></div>
+        <div class="pc-req">Age 19, serious car accident. Stable but critical. Parents requesting pastoral support.</div>
+        <div class="pc-sub">Sunday 11:45 PM · Via James Sr.</div>
+        <div class="pc-acts">
+          <button class="pc-btn red" onclick="chatChip('Help me prepare for a pastoral hospital visit with the Holloway family after a serious car accident')">Prepare Visit</button>
+          <button class="pc-btn" onclick="chatChip('Write a compassionate message to the Holloway family in crisis')">Message Family</button>
+        </div>
+      </div>
+      <div class="pr-card"><div class="pc-hdr"><div class="pc-name">Deacon Raymond Foster</div><span class="pc-cat c-hlth">Health</span></div><div class="pc-req">Knee replacement surgery Thursday. Requesting prayer for procedure and recovery.</div><div class="pc-sub">Sunday 12:30 PM</div><div class="pc-acts"><button class="pc-btn" onclick="chatChip('Write a pre-surgery encouragement message for Deacon Raymond Foster')">Encourage</button></div></div>
+      <div class="pr-card"><div class="pc-hdr"><div class="pc-name">The Henderson Family</div><span class="pc-cat c-fam">Family</span></div><div class="pc-req">Difficult season in marriage. Requesting prayer and would welcome a pastoral conversation.</div><div class="pc-sub">Sunday 10:15 AM</div><div class="pc-acts"><button class="pc-btn" onclick="chatChip('Help me sensitively reach out to a couple with private marriage difficulties')">Reach Out</button></div></div>
+      <div class="pr-card"><div class="pc-hdr"><div class="pc-name">Sister Yvonne Chambers</div><span class="pc-cat c-grief">Grief</span></div><div class="pc-req">Mother passed last Tuesday. Doing okay but appreciates prayer and support.</div><div class="pc-sub">Sunday 2:00 PM</div><div class="pc-acts"><button class="pc-btn" onclick="chatChip('Write a bereavement follow-up for Sister Yvonne Chambers')">Sympathy Message</button><button class="pc-btn" onclick="chatChip('Create a 30-day grief care plan for Yvonne Chambers')">Grief Care Plan</button></div></div>
+      <div class="pr-card"><div class="pc-hdr"><div class="pc-name">Brother Tony Reeves</div><span class="pc-cat c-fin">Financial</span></div><div class="pc-req">Laid off after 11 years. Trusting God. Requesting prayer for provision.</div><div class="pc-sub">Sunday 9:55 AM</div><div class="pc-acts"><button class="pc-btn" onclick="chatChip('Write an encouraging message for Tony Reeves who just lost his job')">Encourage</button></div></div>
+    </div>
+
+    <!-- MEMBERS PANEL -->
+    <div class="panel-view" id="panel-members">
+      <div class="pv-title">Members</div>
+      <div class="pv-sub">Your congregation — searchable, trackable, pastoral</div>
+      <div class="db-stats" id="db-stats"></div>
+      <div class="db-toolbar">
+        <input class="db-search" id="db-search" placeholder="Search name, phone, email…" oninput="dbSearch(this.value)"/>
+        <button class="db-add" onclick="openAddMember()">Add Member</button>
+      </div>
+      <div class="mt">
+        <div class="mt-head"><div>Name</div><div>Phone</div><div>Status</div><div>Joined</div><div>Last Seen</div><div></div></div>
+        <div id="member-rows"></div>
+      </div>
+    </div>
+
+    <!-- TRAVEL PANEL -->
+    <div class="panel-view" id="panel-travel">
+      <div class="pv-title">Book Travel</div>
+      <div class="pv-sub">John asks the right questions before booking anything</div>
+      <div class="card">
+        <p style="font-size:13.5px;color:var(--text2);line-height:1.65;margin-bottom:13px">Tell me where you're going. Before I show any options I'll confirm your dates, budget, airline preference, seat choice, and hotel preference. I don't book without your sign-off.</p>
+        <button class="action-btn" onclick="chatChip('I need to book travel for ministry — let\'s plan a trip')">Plan a Trip</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Sample — Dallas to Atlanta</div>
+        <div class="fl-row"><div class="fl-al">Delta</div><div class="fl-rt">DAL→ATL · Nonstop · 7:45AM–11:59AM</div><span class="fl-pr">$187<span class="fl-best">Best</span></span></div>
+        <div class="fl-row"><div class="fl-al">Southwest</div><div class="fl-rt">DAL→ATL · Nonstop · 10:10AM–12:40PM</div><span class="fl-pr">$214</span></div>
+        <div class="fl-row"><div class="fl-al">American</div><div class="fl-rt">DAL→ATL · 1 Stop · 6:00AM–9:45AM</div><span class="fl-pr">$156</span></div>
+        <button class="action-btn" onclick="chatChip('Book the Delta nonstop Atlanta $187 — confirm my dates first')">Book Delta — $187</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Hotel — Atlanta</div>
+        <div class="ht-row"><div class="ht-top"><div class="ht-n">Marriott Atlanta Downtown</div><div class="ht-p">$142/night</div></div><div class="ht-d">Free WiFi · Breakfast · 0.4mi from conference · Free cancel</div></div>
+        <div class="ht-row"><div class="ht-top"><div class="ht-n">Hilton Garden Inn Midtown</div><div class="ht-p">$119/night</div></div><div class="ht-d">Free parking · Pool · Free cancel</div></div>
+        <button class="action-btn" onclick="chatChip('Book Marriott Atlanta Downtown — confirm dates first')">Book Marriott</button>
+      </div>
+    </div>
+
+    <!-- ENCOURAGEMENT PANEL -->
+    <div class="panel-view" id="panel-encourage">
+      <div class="pv-title">Staff Encouragement</div>
+      <div class="pv-sub">John drafts a fresh word every morning at 6:30 AM</div>
+      <div class="enc-card">
+        <div class="enc-day">Today · <span id="enc-date"></span></div>
+        <div class="enc-msg">"You didn't sign up for ministry because it was easy. You signed up because something inside you said this matters. It still does. God hasn't moved, the mission hasn't changed, and the people you're serving are better because you showed up today. Keep going."</div>
+        <div class="enc-vs">Galatians 6:9 — "Let us not become weary in doing good, for at the proper time we will reap a harvest if we do not give up."</div>
+        <div class="enc-acts">
+          <button class="enc-btn" id="enc-send-btn" onclick="markEncSent()">Send to All Staff</button>
+          <button class="enc-btn" onclick="chatChip('Generate a new daily encouragement message for the ministry staff team')">Regenerate</button>
+          <button class="enc-btn" onclick="chatChip('Schedule daily morning encouragements for staff this whole week')">Schedule Week</button>
+        </div>
+        <div class="enc-sent" id="enc-sent">Sent to all staff members</div>
+      </div>
+      <div class="enc-card">
+        <div class="enc-day">Yesterday</div>
+        <div class="enc-msg">"Sunday was a win. Lives were changed. Don't let the Monday morning silence fool you — the fruit from yesterday is still growing. God used you. Rest in that."</div>
+        <div class="enc-vs">1 Corinthians 15:58 — "Your labor in the Lord is not in vain."</div>
+        <div class="enc-past">Sent Monday 6:31 AM · 12 staff members</div>
+      </div>
+    </div>
+
+    <!-- TEAM PANEL -->
+    <div class="panel-view" id="panel-team">
+      <div class="pv-title">Team</div>
+      <div class="pv-sub" id="team-sub">Manage who has access to John</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button class="db-add" onclick="showInviteForm()">Add Team Member</button>
+      </div>
+      <div id="team-list"></div>
+      <div id="invite-form-wrap" style="display:none">
+        <div class="inv-form">
+          <div class="inv-grid">
+            <div class="fi"><label>First Name</label><input id="inv-first" placeholder="First name"/></div>
+            <div class="fi"><label>Last Name</label><input id="inv-last" placeholder="Last name"/></div>
+            <div class="fi"><label>Title</label><select id="inv-title"><option>Pastor</option><option>Minister</option><option>Elder</option><option>Director</option><option>Administrator</option></select></div>
+            <div class="fi"><label>Role</label><select id="inv-role"><option value="associate">Associate Pastor</option><option value="youth">Youth Pastor</option><option value="worship">Worship Leader</option><option value="admin">Administrator</option><option value="senior">Senior Pastor</option></select></div>
+            <div class="fi"><label>Email</label><input id="inv-email" type="email" placeholder="email@church.com"/></div>
+            <div class="fi"><label>PIN (4 digits)</label><input id="inv-pin" type="password" maxlength="4" placeholder="••••"/></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="mf-btn mf-primary" onclick="createTeamMember()">Add Member</button>
+            <button class="mf-btn mf-ghost" onclick="hideInviteForm()">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- Member Detail Modal -->
+<div class="modal-overlay" id="member-modal" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal-card" id="modal-inner">
+    <div class="modal-hdr"><div><div class="modal-title" id="modal-name"></div><div class="modal-sub" id="modal-sub"></div></div><button class="modal-close" onclick="closeModal()">Close</button></div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<!-- Add Member Modal -->
+<div class="modal-overlay" id="add-modal" style="display:none" onclick="if(event.target===this)closeAddModal()">
+  <div class="modal-card">
+    <div class="modal-hdr"><div><div class="modal-title">Add Member</div><div class="modal-sub">Saved instantly · Available to John immediately</div></div><button class="modal-close" onclick="closeAddModal()">Cancel</button></div>
+    <div class="modal-body">
+      <div class="field-grid" style="margin-bottom:11px">
+        <div class="field-box"><label class="field-label">First Name</label><input class="field-input" id="add-first" placeholder="First"/></div>
+        <div class="field-box"><label class="field-label">Last Name</label><input class="field-input" id="add-last" placeholder="Last"/></div>
+        <div class="field-box"><label class="field-label">Phone</label><input class="field-input" id="add-phone" placeholder="(555) 000-0000"/></div>
+        <div class="field-box"><label class="field-label">Email</label><input class="field-input" id="add-email" type="email" placeholder="email@example.com"/></div>
+        <div class="field-box"><label class="field-label">Date Joined</label><input class="field-input" id="add-joined" type="date"/></div>
+        <div class="field-box"><label class="field-label">Status</label><select class="field-select" id="add-status"><option value="visitor">Visitor</option><option value="new" selected>New</option><option value="active">Active</option></select></div>
+        <div class="field-box"><label class="field-label">Birthday</label><input class="field-input" id="add-bday" type="date"/></div>
+        <div class="field-box"><label class="field-label">City, State</label><input class="field-input" id="add-address" placeholder="Dallas, TX"/></div>
+      </div>
+      <div class="field-box" style="margin-bottom:11px"><label class="field-label">Salvation Date</label><input class="field-input" id="add-salvation" type="date"/></div>
+      <div class="field-box"><label class="field-label">Notes</label><textarea class="field-ta" id="add-notes" rows="3" placeholder="How they connected, who brought them, prayer needs…"></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="mf-btn mf-primary" onclick="saveNewMember()">Save Member</button><button class="mf-btn mf-ghost" onclick="closeAddModal()">Cancel</button></div>
+  </div>
+</div>
+
+<!-- Onboarding -->
+<div class="ob-overlay" id="onboarding">
+  <div class="ob-card">
+    <div class="ob-logo">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#c2410c"/></svg>
+      <div class="ob-logo-name">John</div>
+    </div>
+    <div class="ob-prog"><div class="ob-pip done" id="pip-1"></div><div class="ob-pip" id="pip-2"></div><div class="ob-pip" id="pip-3"></div><div class="ob-pip" id="pip-4"></div></div>
+    <div class="ob-step active" id="ob-step-1">
+      <div class="ob-tag">Step 1 of 4</div>
+      <div class="ob-q">What do your people call you?</div>
+      <div class="ob-note">I want to greet you right — not generically.</div>
+      <input class="ob-input" id="ob-title" placeholder="Pastor, Bishop, Reverend, Dr…"/>
+      <input class="ob-input" id="ob-name" placeholder="Your full name"/>
+      <button class="ob-next" onclick="obNext(1)">Continue</button>
+      <span class="ob-skip" onclick="obSkipAll()">Skip for now</span>
+    </div>
+    <div class="ob-step" id="ob-step-2">
+      <div class="ob-tag">Step 2 of 4</div>
+      <div class="ob-q">Tell me about your church.</div>
+      <div class="ob-note">I'll use this in every document and message I draft for you.</div>
+      <input class="ob-input" id="ob-church" placeholder="Church name"/>
+      <input class="ob-input" id="ob-city" placeholder="City and state"/>
+      <button class="ob-next" onclick="obNext(2)">Continue</button>
+    </div>
+    <div class="ob-step" id="ob-step-3">
+      <div class="ob-tag">Step 3 of 4</div>
+      <div class="ob-q">Your denomination?</div>
+      <div class="ob-note">I'll lead from your theological framework.</div>
+      <div class="ob-opts" id="ob-denom-opts">
+        <button class="ob-opt" onclick="selectOpt(this,'denom')">Assemblies of God</button>
+        <button class="ob-opt" onclick="selectOpt(this,'denom')">Church of God</button>
+        <button class="ob-opt" onclick="selectOpt(this,'denom')">Baptist</button>
+        <button class="ob-opt" onclick="selectOpt(this,'denom')">Non-denominational</button>
+        <button class="ob-opt" onclick="selectOpt(this,'denom')">COGIC</button>
+        <button class="ob-opt" onclick="selectOpt(this,'denom')">Methodist</button>
+        <button class="ob-opt" onclick="selectOpt(this,'denom')">Other</button>
+      </div>
+      <button class="ob-next" onclick="obNext(3)">Continue</button>
+    </div>
+    <div class="ob-step" id="ob-step-4">
+      <div class="ob-tag">Step 4 of 4</div>
+      <div class="ob-q">How big is your congregation?</div>
+      <div class="ob-note">So I can size my plans and reports appropriately.</div>
+      <div class="ob-opts" id="ob-size-opts">
+        <button class="ob-opt" onclick="selectOpt(this,'size')">Under 100</button>
+        <button class="ob-opt" onclick="selectOpt(this,'size')">100–300</button>
+        <button class="ob-opt" onclick="selectOpt(this,'size')">300–500</button>
+        <button class="ob-opt" onclick="selectOpt(this,'size')">500–1,000</button>
+        <button class="ob-opt" onclick="selectOpt(this,'size')">1,000+</button>
+      </div>
+      <button class="ob-next" onclick="obFinish()">Let's go</button>
+      <span class="ob-skip" onclick="obFinish()">Skip</span>
+    </div>
+  </div>
+</div>
+
+<!-- Auth -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-logo">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#c2410c"/></svg>
+    <div class="auth-logo-name">John</div>
+  </div>
+  <div class="auth-card">
+    <div id="a-err" class="a-err"></div>
+    <div id="a-users"></div>
+    <div id="a-divider" class="a-div" style="display:none"><span>or sign in</span></div>
+    <div id="a-form" style="display:none">
+      <label class="a-label">Account</label>
+      <select class="a-select" id="a-select"></select>
+      <label class="a-label" style="margin-top:4px">PIN</label>
+      <input class="a-input" id="a-pin" type="password" maxlength="4" placeholder="4-digit PIN" inputmode="numeric"/>
+      <button class="a-btn" onclick="doLogin()">Sign In</button>
+    </div>
+    <div id="a-first" style="display:none">
+      <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:4px;letter-spacing:-.02em">Welcome to John</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:18px">Your pastoral assistant. Let's get you set up.</div>
+      <label class="a-label">Your name</label>
+      <input class="a-input" id="af-name" placeholder="e.g. James Carter"/>
+      <label class="a-label">Title</label>
+      <select class="a-select" id="af-title" style="margin-bottom:11px"><option>Pastor</option><option>Bishop</option><option>Reverend</option><option>Dr.</option><option>Elder</option></select>
+      <label class="a-label">Create a 4-digit PIN</label>
+      <input class="a-input" id="af-pin" type="password" maxlength="4" placeholder="••••" inputmode="numeric"/>
+      <button class="a-btn" onclick="doFirstSignup()">Get Started</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Constants ──
+const NOW = new Date();
+const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const fmt=(d,o)=>new Date(d).toLocaleDateString('en-US',o);
+
+// ── Clock ──
+function updateClock(){
+  const n=new Date();
+  const d=n.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  const t=n.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true});
+  const el=document.getElementById('topDate');
+  if(el) el.textContent=`${d} · ${t}`;
+}
+updateClock();
+setInterval(updateClock,30000);
+
+// ── Auth ──
+const USERS_KEY='john_users';
+const SES_KEY='john_current_user';
+const ROLE_LABELS={senior:'Senior Pastor',associate:'Associate Pastor',youth:'Youth Pastor',worship:'Worship Leader',admin:'Administrator'};
+let currentUser=null,voiceOn=false;
+
+function usersLoad(){try{return JSON.parse(localStorage.getItem(USERS_KEY)||'[]')}catch{return[]}}
+function usersSave(u){localStorage.setItem(USERS_KEY,JSON.stringify(u))}
+
+function initAuth(){
+  const users=usersLoad();
+  const sid=localStorage.getItem(SES_KEY);
+  const saved=sid?users.find(u=>u.id===sid):null;
+  if(saved){loginComplete(saved);return}
+  if(!users.length){
+    document.getElementById('a-first').style.display='block';
+    return;
+  }
+  const list=document.getElementById('a-users');
+  list.innerHTML=users.map(u=>`
+    <button class="a-user-btn" onclick="quickPick('${u.id}')">
+      <div class="a-av">${u.first[0]}${u.last[0]||''}</div>
+      <div><div class="a-uname">${u.title} ${u.first} ${u.last}</div>
+      <div class="a-urole">${ROLE_LABELS[u.role]||u.role}</div></div>
+    </button>`).join('');
+  const sel=document.getElementById('a-select');
+  sel.innerHTML='<option value="">— Choose —</option>'+users.map(u=>`<option value="${u.id}">${u.title} ${u.first} ${u.last}</option>`).join('');
+  document.getElementById('a-divider').style.display='block';
+  document.getElementById('a-form').style.display='block';
+}
+
+function quickPick(uid){
+  document.getElementById('a-select').value=uid;
+  document.getElementById('a-pin').focus();
+}
+
+function doLogin(){
+  const uid=document.getElementById('a-select').value;
+  const pin=document.getElementById('a-pin').value.trim();
+  const err=document.getElementById('a-err');
+  if(!uid){err.textContent='Select an account.';err.style.display='block';return}
+  if(!pin){err.textContent='Enter your PIN.';err.style.display='block';return}
+  const u=usersLoad().find(x=>x.id===uid);
+  if(!u||u.pin!==pin){err.textContent='Incorrect PIN.';err.style.display='block';return}
+  loginComplete(u);
+}
+
+function doFirstSignup(){
+  const name=document.getElementById('af-name').value.trim();
+  const title=document.getElementById('af-title').value;
+  const pin=document.getElementById('af-pin').value.trim();
+  if(!name){alert('Please enter your name.');return}
+  if(!pin||pin.length<4){alert('PIN must be 4 digits.');return}
+  const parts=name.split(' ');const first=parts[0];const last=parts.slice(1).join(' ')||'';
+  const u={id:Date.now().toString(),first,last,title,role:'senior',pin,createdAt:new Date().toISOString()};
+  const users=usersLoad();users.push(u);usersSave(users);
+  loginComplete(u);
+}
+
+function loginComplete(user){
+  currentUser=user;
+  localStorage.setItem(SES_KEY,user.id);
+  document.getElementById('authScreen').style.display='none';
+  updateTopbarUser(user);
+  loadUserSession(user);
+  requestNotifPermission();
+  if(localStorage.getItem('john_wake_enabled')){setTimeout(()=>{if(currentUser)startWakeWord()},2000)}
+}
+
+function updateTopbarUser(user){
+  document.getElementById('tu-av').textContent=user.first[0]+(user.last[0]||'');
+  document.getElementById('tu-name').textContent=`${user.title} ${user.first} ${(user.last||'').split(' ')[0]}`;
+  document.getElementById('tu-role').textContent=ROLE_LABELS[user.role]||user.role;
+  document.getElementById('um-name').textContent=`${user.title} ${user.first} ${user.last||''}`;
+  document.getElementById('um-role').textContent=ROLE_LABELS[user.role]||user.role;
+  const p=getUserData('profile')||JSON.parse(localStorage.getItem('john_profile')||'{}');
+  document.getElementById('um-church').textContent=p.church||'';
+}
+
+function getUserData(type){
+  if(!currentUser)return null;
+  try{return JSON.parse(localStorage.getItem(`john_${currentUser.id}_${type}`)||'null')}catch{return null}
+}
+function setUserData(type,data){
+  if(!currentUser)return;
+  localStorage.setItem(`john_${currentUser.id}_${type}`,JSON.stringify(data));
+}
+
+function loadUserSession(user){
+  const up=getUserData('profile');
+  const cp=JSON.parse(localStorage.getItem('john_profile')||'{}');
+  const p=up||cp;
+  window.SYSTEM_DYNAMIC=buildSystemPrompt(p,user);
+  applyProfile(p,user);
+  const lastId=localStorage.getItem(ACTIVE_KEY);
+  const allS=memLoad();
+  const lastS=lastId?allS.find(s=>s.id===lastId):null;
+  if(lastS&&lastS.messages.length>0){
+    currentSessionId=lastS.id;
+    history=lastS.messages.map(m=>({role:m.role,content:m.content}));
+    showChat();
+    const c=document.getElementById('chatMessages');
+    const div=document.createElement('div');div.className='s-div';
+    div.textContent=`Resumed — ${fmt(new Date(lastS.startedAt),{weekday:'long',month:'long',day:'numeric'})}`;
+    c.appendChild(div);
+    lastS.messages.forEach(m=>addMsg(m.role==='assistant'?'john':'user',m.content));
+  } else {
+    showHero();
+    if(!cp.church&&!up) setTimeout(()=>{document.getElementById('onboarding').style.display='flex'},300);
+  }
+  renderConvSidebar();
+  renderAgenda('today');
+  checkSubscription();
+  startNotificationEngine();
+}
+
+function applyProfile(p,user){
+  const u=user||currentUser;
+  if(u&&u.name||p.name||p.church){
+    document.getElementById('profileBadge').style.display='block';
+    document.getElementById('pb-name').textContent=p.title&&p.name?`${p.title} ${p.name}`:u?`${u.title} ${u.first} ${u.last||''}`:'';
+    document.getElementById('pb-church').textContent=[p.church,p.city].filter(Boolean).join(' · ');
+  }
+  // Update greeting
+  const hl=document.getElementById('heroHl');
+  if(hl&&p){
+    const firstName=p.name?p.name.split(' ')[0]:(u?u.first:'Pastor');
+    const title=p.title||u?.title||'Pastor';
+    const g=getGreeting();
+    hl.innerHTML=`${g}, ${title} ${firstName}.<br>Ready to serve. Let's begin.`;
+  }
+}
+
+function getGreeting(){
+  const h=new Date().getHours();
+  if(h<12)return'Good morning';if(h<17)return'Good afternoon';return'Good evening';
+}
+
+function resetOnboarding(){
+  localStorage.removeItem('john_profile');
+  document.getElementById('onboarding').style.display='flex';
+}
+
+function logout(){
+  localStorage.removeItem(SES_KEY);currentUser=null;currentSessionId=null;history=[];
+  document.getElementById('chatMessages').innerHTML='';
+  document.getElementById('authScreen').style.display='flex';
+  initAuth();
+}
+function switchUser(){localStorage.removeItem(SES_KEY);currentUser=null;document.getElementById('authScreen').style.display='flex';initAuth()}
+
+function toggleUserMenu(){document.getElementById('userMenu').classList.toggle('open')}
+function closeUserMenu(){document.getElementById('userMenu').classList.remove('open')}
+document.addEventListener('click',e=>{if(!e.target.closest('#topbarUser')&&!e.target.closest('#userMenu'))closeUserMenu()});
+
+// ── Onboarding ──
+let obData={},obSelected={};
+function selectOpt(btn,group){
+  document.getElementById('ob-'+group+'-opts').querySelectorAll('.ob-opt').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');obSelected[group]=btn.textContent;
+}
+function obNext(step){
+  if(step===1){
+    const t=document.getElementById('ob-title').value.trim();
+    const n=document.getElementById('ob-name').value.trim();
+    if(!n){document.getElementById('ob-name').focus();return}
+    obData.title=t||'Pastor';obData.name=n;
+  }
+  if(step===2){obData.church=document.getElementById('ob-church').value.trim()||'your church';obData.city=document.getElementById('ob-city').value.trim()||''}
+  if(step===3){obData.denom=obSelected['denom']||'Assemblies of God'}
+  document.getElementById('ob-step-'+step).classList.remove('active');
+  document.getElementById('ob-step-'+(step+1)).classList.add('active');
+  document.getElementById('pip-'+(step+1)).classList.add('done');
+}
+function obFinish(){
+  obData.size=obSelected['size']||'';
+  localStorage.setItem('john_profile',JSON.stringify(obData));
+  document.getElementById('onboarding').style.display='none';
+  window.SYSTEM_DYNAMIC=buildSystemPrompt(obData,currentUser);
+  applyProfile(obData,currentUser);
+  startWelcomeChat();
+}
+function obSkipAll(){
+  obData={title:'Pastor',name:'',church:'your church',city:'',denom:'Assemblies of God',size:''};
+  localStorage.setItem('john_profile',JSON.stringify(obData));
+  document.getElementById('onboarding').style.display='none';
+  startWelcomeChat();
+}
+
+function startWelcomeChat(){
+  const p=JSON.parse(localStorage.getItem('john_profile')||'{}');
+  const u=currentUser;
+  const firstName=p.name?p.name.split(' ')[0]:(u?u.first:null);
+  const greeting=firstName
+    ?`${p.title||u?.title||'Pastor'} ${firstName}, I'm glad to be here.${p.church&&p.church!=='your church'?' '+p.church+' is in good hands.':''} I've got your profile — from here on I'll know your church, your context, and your people.\n\nWhat do you want to tackle first?`
+    :`Good to meet you. I'm John — your pastoral assistant. Ready to help with anything on your plate. What do you want to tackle first?`;
+  if(!currentSessionId) sessionCreate('Welcome');
+  showChat();addMsg('john',greeting);sessionAddMessage('assistant',greeting);history.push({role:'assistant',content:greeting});
+  renderConvSidebar();
+}
+
+// ── Voice ──
+let recog=null,listening=false,curMicTarget='hero';
+function getVoice(){
+  const vv=window.speechSynthesis.getVoices();
+  return vv.find(v=>['Daniel','Google UK English Male','David','James','Alex'].some(n=>v.name.includes(n)))||vv.find(v=>v.lang.startsWith('en'))||vv[0];
+}
+function speak(text){
+  if(!voiceOn)return;window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text.replace(/[^\w\s.,?!;:'"\-()]/g,''));
+  const v=getVoice();if(v)u.voice=v;u.rate=0.92;u.pitch=0.87;window.speechSynthesis.speak(u);
+}
+window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices();
+function toggleVoice(){
+  voiceOn=!voiceOn;const r=document.getElementById('voiceRow');const l=document.getElementById('voiceLbl');
+  r.classList.toggle('on',voiceOn);l.textContent=voiceOn?'Voice on':'Voice off';
+  if(!voiceOn)window.speechSynthesis.cancel();
+}
+function toggleMic(target){
+  if(!('webkitSpeechRecognition'in window||'SpeechRecognition'in window)){alert('Use Chrome for voice input.');return}
+  curMicTarget=target;
+  const btnId=target==='hero'?'heroMic':'chatMic';
+  if(listening){recog.stop();listening=false;document.getElementById(btnId).classList.remove('on');return}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recog=new SR();recog.continuous=false;recog.interimResults=false;recog.lang='en-US';
+  recog.onresult=e=>{
+    const t=e.results[0][0].transcript;
+    if(target==='hero'){document.getElementById('heroInput').value=t;autoR(document.getElementById('heroInput'));heroSend();}
+    else{document.getElementById('chatInput').value=t;autoR(document.getElementById('chatInput'));chatSend();}
+    listening=false;document.getElementById(btnId).classList.remove('on');
+  };
+  recog.onerror=()=>{listening=false;document.getElementById(btnId).classList.remove('on')};
+  recog.start();listening=true;document.getElementById(btnId).classList.add('on');
+}
+
+// ── Hey John Wake Word ──
+let wakeActive=false,wakeRecog=null,wakeListening=false,cmdRecog=null,cmdListening=false,wakeTo=null;
+const WAKE_PHRASES=['hey john','ok john','hi john','hello john','hey jon','ok jon'];
+const WAKE_CONFIRMS=['Yes, Pastor?','Right here.','I\'m listening.','What do you need?','Go ahead, Pastor.','Here, Pastor.','Ready.'];
+
+function toggleWakeWord(){
+  if(wakeActive)stopWakeWord();else startWakeWord();
+}
+function startWakeWord(){
+  if(!('webkitSpeechRecognition'in window||'SpeechRecognition'in window)){alert('Voice recognition requires Chrome or Edge.');return}
+  if(wakeActive)return;wakeActive=true;localStorage.setItem('john_wake_enabled','1');
+  document.getElementById('wakeDot').classList.add('on');
+  document.getElementById('wakeDot').setAttribute('data-tip','Hey John active — click to disable');
+  beginWakeListening();
+}
+function stopWakeWord(){
+  wakeActive=false;localStorage.removeItem('john_wake_enabled');
+  if(wakeRecog)try{wakeRecog.stop()}catch(e){}
+  if(cmdRecog)try{cmdRecog.stop()}catch(e){}
+  wakeListening=false;cmdListening=false;
+  document.getElementById('wakeDot').classList.remove('on','triggered');
+  document.getElementById('wakeDot').setAttribute('data-tip','Say Hey John · Click to enable');
+}
+function beginWakeListening(){
+  if(!wakeActive||wakeListening)return;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  wakeRecog=new SR();wakeRecog.continuous=true;wakeRecog.interimResults=true;wakeRecog.lang='en-US';wakeRecog.maxAlternatives=5;
+  wakeRecog.onstart=()=>{wakeListening=true};
+  wakeRecog.onresult=e=>{
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const alts=[];for(let j=0;j<e.results[i].length;j++)alts.push(e.results[i][j].transcript.toLowerCase().trim());
+      if(alts.some(t=>WAKE_PHRASES.some(p=>t.includes(p)))){onWakeDetected();return}
+    }
+  };
+  wakeRecog.onerror=e=>{wakeListening=false;if(e.error!=='not-allowed'&&wakeActive)setTimeout(beginWakeListening,1000)};
+  wakeRecog.onend=()=>{wakeListening=false;if(wakeActive&&!cmdListening)setTimeout(beginWakeListening,300)};
+  try{wakeRecog.start()}catch(e){wakeListening=false;setTimeout(beginWakeListening,1500)}
+}
+function onWakeDetected(){
+  wakeListening=false;try{wakeRecog.stop()}catch(e){}
+  document.getElementById('wakeDot').classList.add('triggered');
+  const confirm=WAKE_CONFIRMS[Math.floor(Math.random()*WAKE_CONFIRMS.length)];
+  speakSync(confirm,()=>beginCmdListening());
+}
+function speakSync(text,cb){
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text.replace(/[^\w\s.,?!;:'"\-()]/g,''));
+  const v=getVoice();if(v)u.voice=v;u.rate=0.91;u.pitch=0.86;
+  let done=false;
+  const fin=()=>{if(done)return;done=true;if(cb)cb()};
+  u.onend=fin;u.onerror=fin;setTimeout(fin,4000);
+  window.speechSynthesis.speak(u);
+}
+function beginCmdListening(){
+  if(cmdListening)return;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  cmdRecog=new SR();cmdRecog.continuous=false;cmdRecog.interimResults=false;cmdRecog.lang='en-US';
+  wakeTo=setTimeout(()=>{if(cmdListening){try{cmdRecog.stop()}catch(e){}speakSync('Still here.',restartWake)}},8000);
+  cmdRecog.onstart=()=>{cmdListening=true};
+  cmdRecog.onresult=e=>{clearTimeout(wakeTo);cmdListening=false;onCmd(e.results[0][0].transcript.trim())};
+  cmdRecog.onerror=()=>{clearTimeout(wakeTo);cmdListening=false;restartWake()};
+  cmdRecog.onend=()=>{cmdListening=false};
+  try{cmdRecog.start()}catch(e){cmdListening=false;restartWake()}
+}
+function onCmd(cmd){
+  clearTimeout(wakeTo);
+  document.getElementById('chatInput').value=cmd;autoR(document.getElementById('chatInput'));
+  showChat();
+  speakSync('Got it.',async()=>{await sendMessageVoice(cmd)});
+}
+function restartWake(){
+  document.getElementById('wakeDot').classList.remove('triggered');
+  if(wakeActive)setTimeout(beginWakeListening,500);
+}
+async function sendMessageVoice(text){
+  if(!text){restartWake();return}
+  document.getElementById('chatInput').value='';
+  const lo=text.toLowerCase();
+  if(lo.includes('agenda')){openPanel('agenda');renderAgenda('today');speakSync('Here\'s your agenda.',restartWake);return}
+  if(lo.includes('next week')){openPanel('agenda');renderAgenda('week');speakSync('Here\'s next week.',restartWake);return}
+  if(lo.includes('sunday report')){openPanel('sunday');speakSync('Opening the Sunday report.',restartWake);return}
+  if(lo.includes('prayer')){openPanel('prayer');speakSync('Opening prayer requests.',restartWake);return}
+  showHero();showChat();
+  addMsg('user',text);history.push({role:'user',content:text});
+  if(!currentSessionId)sessionCreate(text);
+  sessionAddMessage('user',text);renderConvSidebar();showTyping();
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,stream:true,
+        system:window.SYSTEM_DYNAMIC||SYSTEM,messages:sessionGetContext()})
+    });
+    hideTyping();
+    const{bub,cursor}=createStreamBubble();
+    const c=document.getElementById('chatMessages');
+    const reader=res.body.getReader();const dec=new TextDecoder();let full='';let buf='';
+    while(true){
+      const{done,value}=await reader.read();if(done)break;
+      buf+=dec.decode(value,{stream:true});const lines=buf.split('\n');buf=lines.pop();
+      for(const line of lines){
+        if(!line.startsWith('data: '))continue;const d=line.slice(6).trim();if(d==='[DONE]')continue;
+        try{const p=JSON.parse(d);if(p.type==='content_block_delta'&&p.delta?.type==='text_delta'){full+=p.delta.text;bub.insertBefore(document.createTextNode(p.delta.text),cursor);c.scrollTop=c.scrollHeight}}catch{}
+      }
+    }
+    cursor.remove();if(!full)full='Something interrupted me.';
+    history.push({role:'assistant',content:full});sessionAddMessage('assistant',full);renderConvSidebar();
+    addSuggestionsAfterMsg(full);
+    speakFullResponse(full);
+  }catch(e){hideTyping();addMsg('john','Something went sideways. Try again.');restartWake();console.error(e)}
+}
+function speakFullResponse(text){
+  const chunks=text.replace(/[^\w\s.,?!;:'"\-()]/g,'').match(/[^.!?]+[.!?]+/g)||[text];
+  let i=0;
+  function next(){
+    if(i>=chunks.length){restartWake();return}
+    const u=new SpeechSynthesisUtterance(chunks[i].trim());
+    const v=getVoice();if(v)u.voice=v;u.rate=0.92;u.pitch=0.87;
+    u.onend=()=>{i++;next()};u.onerror=()=>{i++;next()};
+    window.speechSynthesis.speak(u);i;
+  }
+  next();
+}
+
+// ── Subscription check ──
+function checkSubscription(){
+  const raw=localStorage.getItem('john_subscription');
+  const banner=document.getElementById('subBanner');
+  const text=document.getElementById('subBannerText');
+  if(!raw){text.textContent='John is in demo mode. Start your free trial for full access.';banner.classList.remove('hidden');return}
+  const sub=JSON.parse(raw);
+  if(sub.status==='trial'){
+    const days=Math.max(0,Math.ceil((new Date(sub.trialEnds)-new Date())/86400000));
+    if(days<=3){text.textContent=`Trial ends in ${days} day${days!==1?'s':''} — upgrade to keep John.`;banner.classList.remove('hidden')}
+  }
+  if(sub.status==='cancelled'){text.textContent='Subscription cancelled. Resubscribe to continue.';banner.classList.remove('hidden')}
+}
+
+// ── Notification permission ──
+function requestNotifPermission(){
+  if(!('Notification'in window))return;
+  if(Notification.permission==='default'){
+    setTimeout(()=>{
+      if(confirm('Allow John to send push notifications for emergency alerts, morning briefs, and prayer reports?'))
+        Notification.requestPermission();
+    },4000);
+  }
+}
+
+// ── In-app alert ──
+function showAlert(title,body,type){
+  const ex=document.getElementById('inapp-alert');if(ex)ex.remove();
+  const el=document.createElement('div');el.id='inapp-alert';
+  const color=type==='emergency'?'var(--red)':type==='prayer'?'#6d28d9':'var(--orange)';
+  el.style.cssText=`position:fixed;top:66px;right:18px;z-index:900;background:var(--surface);
+    border:1px solid var(--border);border-left:3px solid ${color};border-radius:12px;
+    padding:13px 15px;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.11);
+    animation:slideInRight .28s cubic-bezier(0.32,0.72,0,1)`;
+  const s=document.createElement('style');if(!document.getElementById('air-st')){s.id='air-st';s.textContent='@keyframes slideInRight{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}';document.head.appendChild(s)}
+  el.innerHTML=`<div style="display:flex;align-items:flex-start;gap:9px">
+    <div style="flex:1"><div style="font-size:11px;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">John · ${type}</div>
+    <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">${title}</div>
+    <div style="font-size:12px;color:var(--text2);line-height:1.5">${body}</div></div>
+    <button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:17px;padding:0">×</button></div>`;
+  document.body.appendChild(el);
+  if(type!=='emergency')setTimeout(()=>el.remove(),8000);
+}
+
+// ── Notification engine ──
+const NOTIF_SCHED=[
+  {id:'encourage',hour:6,minute:30,days:[0,1,2,3,4,5,6],onFire:async()=>{
+    try{
+      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,messages:[{role:'user',content:'Write a short daily staff encouragement. Warm, Spirit-led, personal. Under 90 words. Include one scripture.'}]})});
+      const data=await res.json();
+      const msg=data.content?.map(b=>b.text||'').join('')||'';
+      if(msg&&document.getElementById('chatMessages').children.length>0){
+        showChat();addMsg('john',`Good morning. Today's staff encouragement is ready:\n\n${msg}\n\nShall I send this to all staff now?`);
+        history.push({role:'assistant',content:msg});sessionAddMessage('assistant',msg);
+      }
+    }catch(e){console.error(e)}
+    showAlert('Staff Encouragement Ready','John has drafted this morning\'s word.','encouragement');
+  }},
+  {id:'prayer-report',hour:7,minute:0,days:[2],onFire:()=>{openPanel('prayer');showAlert('Tuesday Prayer Report','7 requests this week. 2 emergency flags.','prayer')}},
+  {id:'sunday-preservice',hour:7,minute:0,days:[0],onFire:()=>{showAlert('Sunday Morning Brief','John has your pre-service overview ready.','report')}},
+  {id:'sunday-report',hour:13,minute:0,days:[0],onFire:()=>{openPanel('sunday');showAlert('Sunday Report Ready','247 attendance · 7 salvations · $8,420 offerings.','report')}},
+];
+const FIRED_KEY='john_notif_fired';
+function startNotificationEngine(){
+  setInterval(()=>{
+    const now=new Date();const dow=now.getDay();const h=now.getHours();const m=now.getMinutes();
+    const dk=now.toDateString();const fired=JSON.parse(localStorage.getItem(FIRED_KEY)||'{}');
+    NOTIF_SCHED.forEach(s=>{
+      if(!s.days.includes(dow)||h!==s.hour||m!==s.minute)return;
+      const fk=`${s.id}_${dk}`;if(fired[fk])return;
+      fired[fk]=true;localStorage.setItem(FIRED_KEY,JSON.stringify(fired));s.onFire();
+    });
+  },60000);
+}
+
+// ── Persistent sessions ──
+const MEM_KEY='john_conversations';
+const ACTIVE_KEY='john_active_session';
+const MAX_SES=30;const MAX_CTX=40;
+let history=[],currentSessionId=null;
+
+function memLoad(){try{return JSON.parse(localStorage.getItem(MEM_KEY)||'[]')}catch{return[]}}
+function memSave(s){localStorage.setItem(MEM_KEY,JSON.stringify(s))}
+
+function sessionCreate(first){
+  const id=Date.now().toString();
+  const title=first.length>48?first.substring(0,48)+'…':first;
+  const s={id,title,startedAt:new Date().toISOString(),updatedAt:new Date().toISOString(),messages:[]};
+  const sessions=memLoad();sessions.unshift(s);
+  if(sessions.length>MAX_SES)sessions.splice(MAX_SES);
+  memSave(sessions);localStorage.setItem(ACTIVE_KEY,id);currentSessionId=id;return s;
+}
+function sessionAddMessage(role,content){
+  if(!currentSessionId)return;
+  const sessions=memLoad();const s=sessions.find(x=>x.id===currentSessionId);if(!s)return;
+  s.messages.push({role,content,ts:new Date().toISOString()});s.updatedAt=new Date().toISOString();
+  if(role==='user'&&s.messages.filter(m=>m.role==='user').length===1)s.title=content.length>52?content.substring(0,52)+'…':content;
+  memSave(sessions);
+}
+function sessionGetContext(){
+  if(!currentSessionId)return[];
+  const s=memLoad().find(x=>x.id===currentSessionId);if(!s)return[];
+  return s.messages.slice(-MAX_CTX).map(m=>({role:m.role,content:m.content}));
+}
+function sessionResume(id){
+  const s=memLoad().find(x=>x.id===id);if(!s)return;
+  currentSessionId=id;localStorage.setItem(ACTIVE_KEY,id);
+  history=s.messages.map(m=>({role:m.role,content:m.content}));
+  showChat();const c=document.getElementById('chatMessages');c.innerHTML='';
+  const div=document.createElement('div');div.className='s-div';
+  div.textContent=`Resumed — ${fmt(new Date(s.startedAt),{weekday:'long',month:'long',day:'numeric'})}`;
+  c.appendChild(div);s.messages.forEach(m=>addMsg(m.role==='assistant'?'john':'user',m.content));
+  renderConvSidebar();
+}
+function sessionNew(){
+  currentSessionId=null;history=[];localStorage.removeItem(ACTIVE_KEY);
+  document.getElementById('chatMessages').innerHTML='';showHero();renderConvSidebar();
+}
+
+function renderConvSidebar(){
+  const sessions=memLoad();
+  const list=document.getElementById('conv-list');
+  if(!sessions.length){list.innerHTML='<div style="font-size:11.5px;color:var(--muted);padding:4px 0">No conversations yet</div>';return}
+  const today=new Date();today.setHours(0,0,0,0);
+  const yesterday=new Date(today);yesterday.setDate(yesterday.getDate()-1);
+  const grouped={};
+  sessions.forEach(s=>{
+    const d=new Date(s.updatedAt);d.setHours(0,0,0,0);
+    const g=d>=today?'Today':d>=yesterday?'Yesterday':fmt(new Date(s.updatedAt),{month:'short',day:'numeric'});
+    if(!grouped[g])grouped[g]=[];grouped[g].push(s);
+  });
+  list.innerHTML=Object.entries(grouped).map(([g,items])=>`
+    <div style="font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:7px 0 3px">${g}</div>
+    ${items.map(s=>`
+      <div class="ri${s.id===currentSessionId?' active':''}" onclick="sessionResume('${s.id}')">
+        <div class="ri-title">${s.title}</div>
+        <div class="ri-time">
+          <span>${new Date(s.updatedAt).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true})}</span>
+          <span onclick="event.stopPropagation();delSes('${s.id}')" style="color:var(--muted);cursor:pointer;font-size:10px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</span>
+        </div>
+      </div>`).join('')}
+  `).join('');
+}
+function delSes(id){const s=memLoad().filter(x=>x.id!==id);memSave(s);if(currentSessionId===id)sessionNew();else renderConvSidebar()}
+
+// ── System prompt — the intelligence core ──
+const SYSTEM=``;// fallback
+function buildSystemPrompt(p,user){
+  const u=user||currentUser;
+  const members=loadMembers();
+  const memberBlock=members.length?`\nMEMBER DATABASE (${members.length} members — use when asked about specific people):\n${members.map(m=>`- ${m.first} ${m.last} | ${m.status} | ${m.phone||'no phone'}${m.notes&&m.notes[0]?' | '+m.notes[0].text.substring(0,70):''}`).join('\n')}\n`:'';
+
+  return `You are Dr. John — Ph.D. in Systematic Theology, Doctor of Ministry in Pastoral Leadership. You serve ${u?`${u.title} ${u.first} ${u.last||''}`:p?.name?`${p.title||'Pastor'} ${p.name}`:'a pastor'} as their trusted pastoral companion and advisor.
+
+${p?.church?`CHURCH: ${p.church}${p.city?', '+p.city:''}`:''} 
+${p?.denom?`DENOMINATION: ${p.denom} (lead from this theological framework first)`:'DENOMINATION: Assemblies of God'}
+${p?.size?`CONGREGATION: ${p.size}`:''}
+${memberBlock}
+
+═══ INTELLIGENCE & RESPONSE PHILOSOPHY ═══
+
+You are not just an answering machine. You think like a trusted advisor who has been in ministry for 30 years. Here is how you operate:
+
+1. ANTICIPATE, DON'T JUST ANSWER
+   After completing any task, think: what would a brilliant pastoral advisor suggest next? Surface that naturally — not as a list of options, but as a genuine next thought. Examples:
+   - After drafting a sermon → suggest a follow-up illustration, or ask about the altar call strategy
+   - After newcomer follow-up → remind them about the 30-day connection sequence
+   - After Sunday report → notice trends and call them out ("Seven salvations two weeks running — that's a move of God worth paying attention to")
+   - After travel booking → ask if they need talking points for the conference
+   - After prayer request → offer to create a follow-up reminder
+
+2. READ THE ROOM
+   If the pastor sounds tired, overwhelmed, or scattered — acknowledge it before diving into tasks. If they share a win, celebrate it fully before moving on. Ministry is personal. You are personal.
+
+3. CONNECT THE DOTS
+   Use context from earlier in the conversation and from the member database. If Marcus Williams was saved last Sunday and the pastor asks about discipleship, connect those two things without being asked.
+
+4. PROACTIVE SURFACE
+   If you notice something important in the data — a member who hasn't been seen in 6 weeks, a pattern in attendance, a birthday coming up — bring it up naturally, like a good assistant would.
+
+5. INTELLIGENT FOLLOW-UPS (SUGGESTIONS)
+   After every substantive response, generate 2-3 natural follow-up suggestions the pastor might want next. Format them as:
+   [SUGGESTIONS: suggestion one | suggestion two | suggestion three]
+   These will render as tappable buttons below your message. Make them specific and genuinely useful — not generic. Think about what comes naturally next in the workflow.
+
+6. ONE FOCUSED QUESTION RULE
+   If you need clarification, ask exactly one question. Not two. Not a bullet list. One focused question that unblocks the task.
+
+7. DOCUMENT CREATION
+   When creating documents, lead with [DOCUMENT TYPE: X] then deliver the complete formatted content. Never deliver a partial document.
+
+═══ THEOLOGICAL EXPERTISE ═══
+
+AG DOCTRINE (Primary — unless denomination says otherwise):
+All 16 AG Fundamental Truths. Salvation by grace through faith. Divine Healing as a cardinal doctrine (Matthew 8:16-17). Spirit Baptism with initial physical evidence of speaking in other tongues (Acts 2:4) — non-negotiable AG position. Pre-tribulation, premillennial eschatology. Water Baptism and Lord's Supper as ordinances (memorial view). AG governance: General Council, district councils, credentialing process. AGWM global missions emphasis.
+
+ALL CHRISTIAN TRADITIONS (Deep working knowledge):
+Baptist (SBC, independent), Methodist/Wesleyan (sanctification, Arminian), Presbyterian/Reformed (TULIP, Westminster Confession, covenant theology), Lutheran (justification by faith alone, law/gospel), Catholic (sacramental theology, Magisterium, transubstantiation), Anglican (via media, 39 Articles), CoG/COGIC, UPCI (Oneness Pentecostal), Charismatic/Word of Faith, Non-denominational, Eastern Orthodox (theosis, apostolic succession), Adventist, Church of Christ, Mennonite/Anabaptist.
+
+═══ PASTORAL CAPABILITIES ═══
+
+SERMON & MESSAGE PREP: Full expository, topical, narrative, textual outlines. Scripture chains. Illustrations and application points. Series planning (4–12 weeks). Opening prayers, altar calls, benedictions. Christmas, Easter, Pentecost Sunday, seasonal messages.
+
+CEREMONIES: Full wedding scripts (vows, unity, ring exchange, pronouncement). Funerals and memorials (crisis death, child loss, suicide — with deep sensitivity). Baby dedications (AG covenant style — not baptism). Water baptism services. Communion liturgy (AG memorial view). Ordinations. Healing services. Building dedications.
+
+MEMBER CARE: Newcomer follow-up (30-60-90 day sequences). Absentee follow-up (warm, never guilt-based). Hospital visit preparation. Grief care plans. Counseling conversation frameworks. Referral language. Milestone messages (birthdays, anniversaries, salvation anniversaries).
+
+OPERATIONS: Staff calendars. Meeting agendas. Volunteer coordination. Event timelines. Project planning (capital campaigns, revivals, conferences). Board reports. Stewardship letters. Ministry reports. Annual state-of-church narratives.
+
+TRAVEL: Always ask destination, dates, number of travelers, budget, airline preferences, seat preference, hotel star rating, car rental needed, and purpose of trip BEFORE presenting options. Never skip discovery questions.
+
+DAILY ENCOURAGEMENT: Spirit-filled, pastoral tone, one specific scripture, under 120 words, acknowledges real weight of ministry, ends with something actionable.
+
+═══ VOICE & TONE ═══
+
+Warm, direct, genuinely human. Plain sentences. No filler, no corporate disclaimers. Think out loud when it helps. Pick up the pastor's vocabulary and match their register — if they're brief, be brief; if they're processing something heavy, sit in it. You've been in ministry long enough to know what actually matters. You're a colleague, not a tool.
+
+TODAY: ${DAYS[NOW.getDay()]}, ${MONTHS[NOW.getMonth()]} ${NOW.getDate()}, ${NOW.getFullYear()}
+${u?`Address as: ${u.title} ${u.first||'Pastor'}`:''}`;
+}
+
+// ── Routing ──
+const PANELS=['agenda','sunday','prayer','members','travel','encourage','team'];
+function showHero(){
+  document.getElementById('heroView').style.display='flex';
+  document.getElementById('chatView').style.display='none';
+  PANELS.forEach(p=>document.getElementById('panel-'+p).classList.remove('open'));
+}
+function showChat(){
+  document.getElementById('heroView').style.display='none';
+  document.getElementById('chatView').style.display='flex';
+  PANELS.forEach(p=>document.getElementById('panel-'+p).classList.remove('open'));
+}
+function openPanel(id){
+  document.getElementById('heroView').style.display='none';
+  document.getElementById('chatView').style.display='none';
+  PANELS.forEach(p=>{const el=document.getElementById('panel-'+p);if(el)el.classList.toggle('open',p===id)});
+  if(id==='agenda')renderAgenda('today');
+  if(id==='members')renderMembersPanel();
+  if(id==='team')renderTeamPanel();
+}
+function navTo(btn,dest,prompt){
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  if(dest==='home'){showHero();return}
+  if(dest==='agenda-week'){openPanel('agenda');renderAgenda('week');return}
+  if(PANELS.includes(dest)){openPanel(dest);return}
+  if(dest==='chat'&&prompt){showChat();setPrompt(prompt);return}
+  openPanel(dest);
+}
+
+// ── Typewriter ──
+const PHRASES=['Write a funeral message','Plan Sunday\'s service','Find flight deals','Draft staff encouragement','Explain AG Spirit Baptism doctrine','Follow up with a newcomer','Book a hotel in Atlanta','Prepare a wedding ceremony','Build a staff schedule','Flag emergency prayer requests','Generate a Sunday report','Write a pastoral care message','Study any scripture deeply','Plan a church revival'];
+let pi=0,ci=0,del=false,tp=0;
+function typewriter(){
+  const el=document.getElementById('typewriter');if(!el)return;
+  const phrase=PHRASES[pi];
+  if(tp>0){tp--;setTimeout(typewriter,60);return}
+  if(!del){el.textContent=phrase.substring(0,ci+1);ci++;if(ci===phrase.length){del=true;tp=28;setTimeout(typewriter,60);return}setTimeout(typewriter,52)}
+  else{el.textContent=phrase.substring(0,ci-1);ci--;if(ci===0){del=false;pi=(pi+1)%PHRASES.length;tp=6}setTimeout(typewriter,28)}
+}
+setTimeout(typewriter,800);
+
+// ── Helpers ──
+function autoR(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,110)+'px'}
+function heroKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();heroSend()}}
+function chatKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();chatSend()}}
+function setPrompt(t){const i=document.getElementById('chatInput');i.value=t;i.focus();autoR(i)}
+function heroSend(){
+  const i=document.getElementById('heroInput');const t=i.value.trim();if(!t)return;
+  i.value='';i.style.height='auto';showChat();sendMessage(t);
+}
+function chatSend(){
+  const i=document.getElementById('chatInput');const t=i.value.trim();if(!t)return;
+  i.value='';i.style.height='auto';sendMessage(t);
+}
+function chipSend(t){showChat();sendMessage(t)}
+function chatChip(t){showChat();sendMessage(t)}
+function reqDoc(type){
+  const m={word:'Create a Word document for: ',excel:'Build an Excel spreadsheet for: ',gdoc:'Create a Google Doc for: ',gsheet:'Create a Google Sheet for: ',pdf:'Prepare a PDF for: '};
+  chipSend(m[type]);
+}
+function markEncSent(){
+  const b=document.getElementById('enc-send-btn');b.textContent='Sent';b.style.color='var(--green)';b.style.borderColor='var(--green)';
+  document.getElementById('enc-sent').style.display='block';
+}
+const NOW_STR=`${DAYS[NOW.getDay()]}, ${MONTHS[NOW.getMonth()]} ${NOW.getDate()}, ${NOW.getFullYear()}`;
+
+// ── Message rendering ──
+function addMsg(role,text){
+  const c=document.getElementById('chatMessages');
+  const isJ=role==='john';
+  const row=document.createElement('div');row.className='msg-row';
+  const inner=document.createElement('div');inner.className=`msg-inner${isJ?'':' user'}`;
+  const av=document.createElement('div');av.className=`m-av ${isJ?'john':'user'}`;av.textContent=isJ?'J':'P';
+  const body=document.createElement('div');body.className='m-body';
+  const nm=document.createElement('div');nm.className='m-name';nm.textContent=isJ?'Dr. John · Ph.D. Theology':'Pastor';
+  const isEmg=isJ&&text.toLowerCase().includes('emergency')&&text.toLowerCase().includes('prayer');
+  const bub=document.createElement('div');bub.className=isEmg?'bubble emg':'bubble';
+  // Handle doc type
+  const dm=text.match(/\[DOCUMENT TYPE: ([^\]]+)\]/);
+  let cleanText=text;
+  if(dm&&isJ){
+    cleanText=text.replace(/\[DOCUMENT TYPE:[^\]]+\]/,'').trim();
+    bub.textContent=cleanText;
+    const card=document.createElement('a');card.className='doc-card';
+    card.href=URL.createObjectURL(new Blob([cleanText],{type:'text/plain'}));
+    card.download=`John_${dm[1].replace(/\s/g,'_')}_${Date.now()}.txt`;
+    card.innerHTML=`<div class="dc-type">${dm[1].split(' ')[0]}</div><div style="flex:1"><div class="dc-name">${dm[1]} Ready</div><div style="font-size:11px;color:var(--muted)">Click to download</div></div><div class="dc-dl">Download</div>`;
+    bub.appendChild(card);
+  } else {
+    // Strip suggestions block before displaying
+    cleanText=text.replace(/\[SUGGESTIONS:[^\]]+\]/,'').trim();
+    bub.textContent=cleanText;
+  }
+  if(isJ){
+    const spk=document.createElement('button');spk.className='speak-btn';spk.textContent='Speak';
+    spk.onclick=()=>{
+      if(spk.classList.contains('active')){window.speechSynthesis.cancel();spk.classList.remove('active');spk.textContent='Speak';return}
+      spk.classList.add('active');spk.textContent='Stop';
+      const u=new SpeechSynthesisUtterance(cleanText.replace(/[^\w\s.,?!;:'"\-()]/g,''));
+      const v=getVoice();if(v)u.voice=v;u.rate=0.92;u.pitch=0.87;
+      u.onend=()=>{spk.classList.remove('active');spk.textContent='Speak'};
+      window.speechSynthesis.speak(u);
+    };
+    body.appendChild(nm);body.appendChild(bub);body.appendChild(spk);
+  } else {body.appendChild(nm);body.appendChild(bub)}
+  inner.appendChild(av);inner.appendChild(body);
+  row.appendChild(inner);c.appendChild(row);c.scrollTop=c.scrollHeight;
+  return{bub,body,cleanText};
+}
+
+// ── Suggestions (Claude-like intelligence layer) ──
+function addSuggestionsAfterMsg(fullText){
+  const c=document.getElementById('chatMessages');
+  const match=fullText.match(/\[SUGGESTIONS:([^\]]+)\]/);
+  if(!match)return;
+  const sugs=match[1].split('|').map(s=>s.trim()).filter(Boolean).slice(0,3);
+  if(!sugs.length)return;
+  // Find last john message body and append
+  const rows=c.querySelectorAll('.msg-row');
+  const lastRow=rows[rows.length-1];
+  if(!lastRow)return;
+  const body=lastRow.querySelector('.m-body');
+  if(!body)return;
+  const wrap=document.createElement('div');wrap.className='suggestions';
+  sugs.forEach(sug=>{
+    const btn=document.createElement('button');btn.className='sug-btn';
+    btn.innerHTML=`<span class="sug-arrow">→</span>${sug}`;
+    btn.onclick=()=>{chatChip(sug)};
+    wrap.appendChild(btn);
+  });
+  body.appendChild(wrap);
+  c.scrollTop=c.scrollHeight;
+}
+
+// Stream bubble
+function createStreamBubble(){
+  const c=document.getElementById('chatMessages');
+  const row=document.createElement('div');row.className='msg-row';
+  const inner=document.createElement('div');inner.className='msg-inner';
+  const av=document.createElement('div');av.className='m-av john';av.textContent='J';
+  const body=document.createElement('div');body.className='m-body';
+  const nm=document.createElement('div');nm.className='m-name';nm.textContent='Dr. John · Ph.D. Theology';
+  const bub=document.createElement('div');bub.className='bubble';
+  const cursor=document.createElement('span');cursor.className='tw-cursor';bub.appendChild(cursor);
+  const spk=document.createElement('button');spk.className='speak-btn';spk.textContent='Speak';
+  body.appendChild(nm);body.appendChild(bub);body.appendChild(spk);
+  inner.appendChild(av);inner.appendChild(body);row.appendChild(inner);
+  c.appendChild(row);c.scrollTop=c.scrollHeight;
+  return{bub,cursor,spk,body};
+}
+
+function showTyping(){
+  const c=document.getElementById('chatMessages');
+  const row=document.createElement('div');row.className='typing-row';row.id='typing';
+  const inner=document.createElement('div');inner.className='typing-inner';
+  inner.innerHTML='<div class="m-av john">J</div><div><div class="m-name" style="margin-bottom:4px">Dr. John</div><div class="t-bub"><div class="td"></div><div class="td"></div><div class="td"></div></div></div>';
+  row.appendChild(inner);c.appendChild(row);c.scrollTop=c.scrollHeight;
+}
+function hideTyping(){const e=document.getElementById('typing');if(e)e.remove()}
+
+// ── Main send ──
+async function sendMessage(text){
+  if(!text)return;
+  // Smart routing
+  const lo=text.toLowerCase();
+  if((lo.includes('today')&&lo.includes('agenda'))||lo==="today's agenda"){openPanel('agenda');renderAgenda('today');return}
+  if(lo.includes('next week')&&lo.includes('agenda')){openPanel('agenda');renderAgenda('week');return}
+  if(lo.includes('sunday report')||lo.includes('salvation report')){openPanel('sunday');return}
+  if((lo.includes('prayer request')||lo.includes('prayer report'))&&!lo.includes('draft')&&!lo.includes('write')){openPanel('prayer');return}
+  if(lo.includes('encouragement')&&lo.includes('staff')&&!lo.includes('write')&&!lo.includes('draft')){openPanel('encourage');return}
+  if((lo.includes('book')&&(lo.includes('flight')||lo.includes('hotel')))||lo.includes('flight deal')){openPanel('travel');return}
+
+  showChat();
+  const w=document.getElementById('heroView');if(w)w.style.display='none';
+  if(!currentSessionId)sessionCreate(text);
+  addMsg('user',text);history.push({role:'user',content:text});
+  sessionAddMessage('user',text);renderConvSidebar();showTyping();
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,stream:true,
+        system:window.SYSTEM_DYNAMIC||buildSystemPrompt(JSON.parse(localStorage.getItem('john_profile')||'{}'),currentUser),
+        messages:sessionGetContext()})
+    });
+    hideTyping();
+    const{bub,cursor,spk,body}=createStreamBubble();
+    const c=document.getElementById('chatMessages');
+    const reader=res.body.getReader();const dec=new TextDecoder();let full='';let buf='';
+    while(true){
+      const{done,value}=await reader.read();if(done)break;
+      buf+=dec.decode(value,{stream:true});const lines=buf.split('\n');buf=lines.pop();
+      for(const line of lines){
+        if(!line.startsWith('data: '))continue;const d=line.slice(6).trim();if(d==='[DONE]')continue;
+        try{const p=JSON.parse(d);if(p.type==='content_block_delta'&&p.delta?.type==='text_delta'){full+=p.delta.text;bub.insertBefore(document.createTextNode(p.delta.text),cursor);c.scrollTop=c.scrollHeight}}catch{}
+      }
+    }
+    cursor.remove();
+    if(!full)full="Something interrupted me. Try again, Pastor.";
+    // Clean display text (remove suggestions block)
+    const displayText=full.replace(/\[SUGGESTIONS:[^\]]+\]/,'').trim();
+    // Replace streamed content with clean version
+    while(bub.firstChild)bub.removeChild(bub.firstChild);
+    bub.textContent=displayText;
+    // Re-attach speak button logic
+    spk.onclick=()=>{
+      if(spk.classList.contains('active')){window.speechSynthesis.cancel();spk.classList.remove('active');spk.textContent='Speak';return}
+      spk.classList.add('active');spk.textContent='Stop';
+      const u=new SpeechSynthesisUtterance(displayText.replace(/[^\w\s.,?!;:'"\-()]/g,''));
+      const v=getVoice();if(v)u.voice=v;u.rate=0.92;u.pitch=0.87;
+      u.onend=()=>{spk.classList.remove('active');spk.textContent='Speak'};
+      window.speechSynthesis.speak(u);
+    };
+    // Add suggestions
+    addSuggestionsAfterMsg(full);
+    history.push({role:'assistant',content:full});
+    sessionAddMessage('assistant',full);renderConvSidebar();
+    if(voiceOn||wakeActive){wakeActive?speakFullResponse(displayText):speak(displayText)}
+  }catch(err){
+    hideTyping();addMsg('john',"Something went sideways. Give it a moment and try again, Pastor.");console.error(err);
+  }
+}
+
+// ── Member Database ──
+const ST_CLS={active:'st-active',new:'st-new',visitor:'st-visitor',inactive:'st-inactive'};
+const ST_LBL={active:'Active',new:'New',visitor:'Visitor',inactive:'Inactive'};
+function loadMembers(){try{return JSON.parse(localStorage.getItem('john_members')||'[]')}catch{return[]}}
+function saveMembers(m){localStorage.setItem('john_members',JSON.stringify(m))}
+
+function seedMembers(){
+  const seed=[
+    {id:1,first:'Marcus',last:'Williams',phone:'(214) 555-0182',email:'marcus.w@email.com',status:'new',joined:'2025-05-11',lastSeen:'2025-05-11',birthday:'1994-03-15',address:'Dallas, TX',salvation:'2025-05-11',notes:[{date:'2025-05-11',text:'Saved at altar call — Acts 2 message. Needs discipleship connection immediately.'}]},
+    {id:2,first:'Denise',last:'Okafor',phone:'(214) 555-0341',email:'denise.okafor@email.com',status:'new',joined:'2025-05-11',lastSeen:'2025-05-11',birthday:'1988-07-22',address:'Dallas, TX',salvation:'2025-05-11',notes:[{date:'2025-05-11',text:'Came with husband Robert. Both saved. Connected through Tina Brooks. Follow up this week.'}]},
+    {id:3,first:'Robert',last:'Okafor',phone:'(214) 555-0341',email:'r.okafor@email.com',status:'new',joined:'2025-05-11',lastSeen:'2025-05-11',birthday:'1985-11-08',address:'Dallas, TX',salvation:'2025-05-11',notes:[{date:'2025-05-11',text:'Saved alongside wife Denise. Interested in men\'s ministry.'}]},
+    {id:4,first:'Darnell',last:'Thomas',phone:'(972) 555-0217',email:'dthomas@email.com',status:'new',joined:'2025-05-11',lastSeen:'2025-05-11',birthday:'1979-02-14',address:'Garland, TX',salvation:'2025-05-11',notes:[{date:'2025-05-11',text:'Wife Joyce has been praying 2 years. Very emotional response — genuine breakthrough.'}]},
+    {id:5,first:'Gloria',last:'Martinez',phone:'(214) 555-0093',email:'gloria.m@email.com',status:'active',joined:'2019-03-10',lastSeen:'2025-05-04',birthday:'1955-09-30',address:'Dallas, TX',salvation:'2019-03-10',notes:[{date:'2025-05-14',text:'URGENT: Husband Carlos in ICU — stroke. She is at Regional Medical alone.'}]},
+    {id:6,first:'Raymond',last:'Foster',phone:'(214) 555-0458',email:'rfoster@email.com',status:'active',joined:'2015-08-21',lastSeen:'2025-05-11',birthday:'1960-04-12',address:'Mesquite, TX',salvation:'2015-08-21',notes:[{date:'2025-05-11',text:'Knee replacement surgery Thursday. Requested prayer.'}]},
+    {id:7,first:'Tony',last:'Reeves',phone:'(972) 555-0774',email:'tony.reeves@email.com',status:'active',joined:'2021-06-13',lastSeen:'2025-05-11',birthday:'1982-08-05',address:'Garland, TX',salvation:'2021-06-13',notes:[{date:'2025-05-11',text:'Laid off from job of 11 years. Needs prayer and possibly benevolence fund connection.'}]},
+    {id:8,first:'Yvonne',last:'Chambers',phone:'(214) 555-0612',email:'yvonne.c@email.com',status:'active',joined:'2018-01-07',lastSeen:'2025-05-11',birthday:'1970-12-01',address:'Dallas, TX',salvation:'2018-01-07',notes:[{date:'2025-05-11',text:'Mother passed last Tuesday. Doing okay. Needs ongoing grief care.'}]},
+    {id:9,first:'Tina',last:'Brooks',phone:'(214) 555-0187',email:'tina.brooks@email.com',status:'active',joined:'2017-04-23',lastSeen:'2025-05-11',birthday:'1980-06-28',address:'Plano, TX',salvation:'2017-04-23',notes:[{date:'2025-05-11',text:'Brought the Okafor family to church — both got saved. Great soul winner.'}]},
+    {id:10,first:'Priscilla',last:'Davis',phone:'(214) 555-0329',email:'priscilla.d@email.com',status:'active',joined:'2020-09-19',lastSeen:'2025-05-11',birthday:'1991-05-17',address:'Dallas, TX',salvation:'2020-09-19',notes:[{date:'2025-05-11',text:'Feeling spiritually dry. Requesting prayer for breakthrough.'}]},
+  ];
+  saveMembers(seed);return seed;
+}
+
+function renderMembersPanel(){
+  const members=loadMembers().length?loadMembers():seedMembers();
+  const total=members.length,active=members.filter(m=>m.status==='active').length,
+    newM=members.filter(m=>m.status==='new').length,vis=members.filter(m=>m.status==='visitor').length;
+  document.getElementById('db-stats').innerHTML=`
+    <div class="db-stat"><div class="db-n">${total}</div><div class="db-l">Total</div></div>
+    <div class="db-stat"><div class="db-n">${active}</div><div class="db-l">Active</div></div>
+    <div class="db-stat"><div class="db-n">${newM}</div><div class="db-l">New</div></div>
+    <div class="db-stat"><div class="db-n">${vis}</div><div class="db-l">Visitors</div></div>`;
+  renderMemberRows(members);
+}
+function renderMemberRows(members){
+  const c=document.getElementById('member-rows');
+  if(!members.length){c.innerHTML='<div style="padding:28px;text-align:center;color:var(--muted)">No members found</div>';return}
+  c.innerHTML=members.map(m=>`
+    <div class="mt-row" onclick="openMember(${m.id})">
+      <div><div class="mt-name">${m.first} ${m.last}</div><div class="mt-sub">${m.email||''}</div></div>
+      <div class="mt-cell">${m.phone||'—'}</div>
+      <div><span class="mt-status ${ST_CLS[m.status]||'st-inactive'}">${ST_LBL[m.status]||'—'}</span></div>
+      <div class="mt-cell">${m.joined?fmt(new Date(m.joined+'T12:00:00'),{month:'short',day:'numeric',year:'numeric'}):'—'}</div>
+      <div class="mt-cell">${m.lastSeen?fmt(new Date(m.lastSeen+'T12:00:00'),{month:'short',day:'numeric',year:'numeric'}):'—'}</div>
+      <div><button class="mt-act-btn" onclick="event.stopPropagation();askAbout(${m.id})">Ask John</button></div>
+    </div>`).join('');
+}
+function dbSearch(q){
+  let members=loadMembers();
+  if(q.trim()){const lo=q.toLowerCase();members=members.filter(m=>`${m.first} ${m.last}`.toLowerCase().includes(lo)||(m.phone||'').includes(lo)||(m.email||'').toLowerCase().includes(lo))}
+  renderMembersPanel();renderMemberRows(members);
+}
+function askAbout(id){
+  const m=loadMembers().find(x=>x.id===id);if(!m)return;
+  const n=m.notes&&m.notes[0]?` Most recent note: "${m.notes[0].text}"`:'' ;
+  chatChip(`Tell me what I should know about ${m.first} ${m.last} and how to best follow up. Status: ${ST_LBL[m.status]||'unknown'}. Joined: ${m.joined||'unknown'}.${n}`);
+}
+function openMember(id){
+  const members=loadMembers();const m=members.find(x=>x.id===id);if(!m)return;
+  document.getElementById('modal-name').textContent=`${m.first} ${m.last}`;
+  document.getElementById('modal-sub').textContent=[ST_LBL[m.status],m.address].filter(Boolean).join(' · ');
+  const notes=(m.notes||[]).map(n=>`<div class="note-entry"><div class="note-date">${n.date?fmt(new Date(n.date+'T12:00:00'),{month:'long',day:'numeric',year:'numeric'}):''}</div><div class="note-text">${n.text}</div></div>`).join('')||'<div style="font-size:13px;color:var(--muted)">No notes yet</div>';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="modal-sec"><div class="modal-sec-title">Contact & Personal</div>
+      <div class="field-grid">
+        <div class="field-box"><div class="field-label">Phone</div><div class="field-val">${m.phone||'—'}</div></div>
+        <div class="field-box"><div class="field-label">Email</div><div class="field-val">${m.email||'—'}</div></div>
+        <div class="field-box"><div class="field-label">Address</div><div class="field-val">${m.address||'—'}</div></div>
+        <div class="field-box"><div class="field-label">Birthday</div><div class="field-val">${m.birthday?fmt(new Date(m.birthday+'T12:00:00'),{month:'long',day:'numeric'}):'—'}</div></div>
+      </div>
+    </div>
+    <div class="modal-sec"><div class="modal-sec-title">Ministry Record</div>
+      <div class="field-grid">
+        <div class="field-box"><div class="field-label">Status</div><div class="field-val">${ST_LBL[m.status]||'—'}</div></div>
+        <div class="field-box"><div class="field-label">Joined</div><div class="field-val">${m.joined?fmt(new Date(m.joined+'T12:00:00'),{month:'long',day:'numeric',year:'numeric'}):'—'}</div></div>
+        <div class="field-box"><div class="field-label">Salvation Date</div><div class="field-val">${m.salvation?fmt(new Date(m.salvation+'T12:00:00'),{month:'long',day:'numeric',year:'numeric'}):'—'}</div></div>
+        <div class="field-box"><div class="field-label">Last Seen</div><div class="field-val">${m.lastSeen?fmt(new Date(m.lastSeen+'T12:00:00'),{month:'long',day:'numeric',year:'numeric'}):'—'}</div></div>
+      </div>
+    </div>
+    <div class="modal-sec"><div class="modal-sec-title">Add Note</div>
+      <textarea class="field-ta" id="new-note-${id}" rows="2" placeholder="Pastoral note, prayer request, follow-up…"></textarea>
+      <button class="mf-btn mf-ghost" style="margin-top:7px;font-size:12px;padding:6px 13px" onclick="saveNote(${id})">Save Note</button>
+    </div>
+    <div class="modal-sec"><div class="modal-sec-title">Pastoral Notes</div>${notes}</div>`;
+  document.getElementById('modal-footer').innerHTML=`
+    <button class="mf-btn mf-primary" onclick="askAbout(${id});closeModal()">Ask John</button>
+    <button class="mf-btn mf-ghost" onclick="chatChip('Write a follow-up message for ${m.first} ${m.last}');closeModal()">Draft Follow-up</button>
+    <button class="mf-btn mf-danger" onclick="deleteMember(${id})">Remove</button>`;
+  document.getElementById('member-modal').style.display='flex';
+}
+function saveNote(id){
+  const ta=document.getElementById(`new-note-${id}`);if(!ta||!ta.value.trim())return;
+  const members=loadMembers();const m=members.find(x=>x.id===id);if(!m)return;
+  if(!m.notes)m.notes=[];m.notes.unshift({date:new Date().toISOString().split('T')[0],text:ta.value.trim()});
+  saveMembers(members);openMember(id);
+}
+function deleteMember(id){
+  if(!confirm('Remove this member?'))return;saveMembers(loadMembers().filter(m=>m.id!==id));closeModal();renderMembersPanel();
+}
+function closeModal(){document.getElementById('member-modal').style.display='none'}
+function openAddMember(){document.getElementById('add-joined').value=new Date().toISOString().split('T')[0];document.getElementById('add-modal').style.display='flex'}
+function closeAddModal(){document.getElementById('add-modal').style.display='none';['add-first','add-last','add-phone','add-email','add-address','add-bday','add-salvation','add-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''})}
+function saveNewMember(){
+  const first=document.getElementById('add-first').value.trim();const last=document.getElementById('add-last').value.trim();
+  if(!first&&!last){document.getElementById('add-first').focus();return}
+  const members=loadMembers();const newId=members.length?Math.max(...members.map(m=>m.id))+1:1;
+  const notes=document.getElementById('add-notes').value.trim();
+  members.unshift({id:newId,first,last,phone:document.getElementById('add-phone').value.trim(),email:document.getElementById('add-email').value.trim(),status:document.getElementById('add-status').value,joined:document.getElementById('add-joined').value,lastSeen:document.getElementById('add-joined').value,birthday:document.getElementById('add-bday').value,address:document.getElementById('add-address').value.trim(),salvation:document.getElementById('add-salvation').value,notes:notes?[{date:new Date().toISOString().split('T')[0],text:notes}]:[]});
+  saveMembers(members);closeAddModal();renderMembersPanel();window.SYSTEM_DYNAMIC=buildSystemPrompt(JSON.parse(localStorage.getItem('john_profile')||'{}'),currentUser);
+}
+
+// ── Agenda ──
+const TAG_CLS={service:'svc',pastoral:'past',admin:'adm',meeting:'',personal:'',travel:'adm'};
+const TAG_LBL={service:'Service',pastoral:'Pastoral',admin:'Admin',meeting:'Meeting',personal:'Personal',travel:'Travel'};
+const TODAYEVS=[
+  {t:'6:30 AM',n:'Personal Devotion & Prayer',d:'Scripture, intercession, journaling',tag:'personal'},
+  {t:'8:00 AM',n:'Staff Check-In',d:'Team sync — updates, prayer needs',tag:'meeting'},
+  {t:'9:30 AM',n:'Sermon Prep Block',d:'Sunday message research and outline',tag:'service'},
+  {t:'11:00 AM',n:'Hospital Visit — Gloria Martinez',d:'URGENT: Husband had stroke — ICU, Regional Medical',tag:'pastoral'},
+  {t:'1:00 PM',n:'Lunch & Rest',d:'Family time',tag:'personal'},
+  {t:'2:30 PM',n:'Newcomer Follow-up Calls',d:'3 guests from Sunday — 15 min each',tag:'pastoral'},
+  {t:'4:00 PM',n:'Budget Review',d:'Monthly financials with treasurer',tag:'admin'},
+  {t:'7:00 PM',n:'Midweek Prayer Service',d:'Full service — prayer, worship, Word',tag:'service'},
+];
+const WEEKEVS=[
+  {day:'Monday',evs:[{t:'9:00 AM',n:'Staff Planning',d:'Sunday planning, ministry updates',tag:'meeting'},{t:'2:00 PM',n:'Marriage Counseling — Johnsons',d:'Session 3',tag:'pastoral'}]},
+  {day:'Tuesday',evs:[{t:'6:30 AM',n:'Prayer Request Report',d:'John delivers Tuesday morning prayer summary',tag:'pastoral'},{t:'9:00 AM',n:'Sermon Series Planning',d:'4-week series with worship director',tag:'service'},{t:'3:00 PM',n:'Board Report Prep',d:'Monthly numbers',tag:'admin'}]},
+  {day:'Wednesday',evs:[{t:'10:00 AM',n:'District Ministers Fellowship',d:'Monthly AG gathering',tag:'meeting'},{t:'7:00 PM',n:'Midweek Prayer Service',d:'Worship and prayer',tag:'service'}]},
+  {day:'Thursday',evs:[{t:'9:00 AM',n:'Sermon Finalization',d:'Complete message, altar call, illustrations',tag:'service'},{t:'2:00 PM',n:'Volunteer Appreciation Planning',d:'Quarterly event',tag:'admin'}]},
+  {day:'Friday',evs:[{t:'All Day',n:'Day Off — Family',d:'Rest and restoration',tag:'personal'}]},
+  {day:'Saturday',evs:[{t:'9:00 AM',n:'Final Sermon Prep',d:'Run-through, Spirit-led adjustments',tag:'service'},{t:'1:00 PM',n:'Depart — AG Conference',d:'Flight to Atlanta',tag:'travel'}]},
+  {day:'Sunday',evs:[{t:'7:30 AM',n:'Pre-Service Prayer',d:'Staff and intercessors',tag:'service'},{t:'9:00 AM',n:'1st Service',d:'Worship, message, altar',tag:'service'},{t:'11:00 AM',n:'2nd Service',d:'Worship, message, altar',tag:'service'}]},
+];
+function renderAgenda(mode){
+  const body=document.getElementById('ag-body');const title=document.getElementById('ag-title');
+  let html='';
+  if(mode==='today'){
+    title.textContent=`Today — ${DAYS[NOW.getDay()]}`;
+    document.getElementById('ag-today-btn').style.borderColor='var(--orange)';document.getElementById('ag-today-btn').style.color='var(--orange)';
+    document.getElementById('ag-week-btn').style.borderColor='';document.getElementById('ag-week-btn').style.color='';
+    html+=`<div class="card">`;TODAYEVS.forEach(e=>{html+=agRow(e)});html+=`</div>`;
+  } else {
+    title.textContent='Next Week';
+    document.getElementById('ag-week-btn').style.borderColor='var(--orange)';document.getElementById('ag-week-btn').style.color='var(--orange)';
+    document.getElementById('ag-today-btn').style.borderColor='';document.getElementById('ag-today-btn').style.color='';
+    WEEKEVS.forEach(day=>{html+=`<div class="card"><div class="ag-lbl">${day.day}</div>`;day.evs.forEach(e=>{html+=agRow(e)});html+=`</div>`});
+  }
+  body.innerHTML=html;
+}
+function agRow(e){return`<div class="ag-row"><div class="ag-t">${e.t}</div><div class="ag-c"><div class="ag-n">${e.n}</div><div class="ag-d">${e.d}</div></div><span class="ag-pill ${TAG_CLS[e.tag]||''}">${TAG_LBL[e.tag]}</span></div>`}
+
+// ── Team ──
+const ROLE_LABELS_MAP={senior:'Senior Pastor',associate:'Associate Pastor',youth:'Youth Pastor',worship:'Worship Leader',admin:'Administrator'};
+const ROLE_CLS={senior:'rb-senior',admin:'rb-admin'};
+function renderTeamPanel(){
+  const users=usersLoad();
+  document.getElementById('team-sub').textContent=`${users.length} team member${users.length!==1?'s':''} with access to John`;
+  const list=document.getElementById('team-list');
+  if(!users.length){list.innerHTML='<div style="font-size:13px;color:var(--muted);padding:14px 0">No team members yet.</div>';return}
+  list.innerHTML=users.map(u=>`
+    <div class="tc">
+      <div class="tc-av">${u.first[0]}${u.last[0]||''}</div>
+      <div class="tc-info">
+        <div class="tc-name">${u.title} ${u.first} ${u.last||''} <span class="rb ${ROLE_CLS[u.role]||'rb-other'}">${ROLE_LABELS_MAP[u.role]||u.role}</span></div>
+        <div class="tc-role">${u.email||'No email'}</div>
+        <div class="tc-status">${u.id===(currentUser&&currentUser.id)?'You — signed in':'Has access'}</div>
+      </div>
+      ${u.id!==(currentUser&&currentUser.id)?`<button class="tc-btn red" onclick="removeTeamMember('${u.id}')">Remove</button>`:''}
+    </div>`).join('');
+}
+function showInviteForm(){document.getElementById('invite-form-wrap').style.display='block'}
+function hideInviteForm(){document.getElementById('invite-form-wrap').style.display='none'}
+function createTeamMember(){
+  const first=document.getElementById('inv-first').value.trim();const last=document.getElementById('inv-last').value.trim();
+  const pin=document.getElementById('inv-pin').value.trim();
+  if(!first||!last){alert('Please enter a name.');return}if(!pin||pin.length<4){alert('Set a 4-digit PIN.');return}
+  const users=usersLoad();
+  users.push({id:Date.now().toString(),first,last,title:document.getElementById('inv-title').value,role:document.getElementById('inv-role').value,email:document.getElementById('inv-email').value.trim(),pin,createdAt:new Date().toISOString()});
+  usersSave(users);hideInviteForm();['inv-first','inv-last','inv-email','inv-pin'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
+  renderTeamPanel();
+}
+function removeTeamMember(uid){
+  if(!confirm('Remove this team member?'))return;
+  usersSave(usersLoad().filter(u=>u.id!==uid));renderTeamPanel();
+}
+
+// ── Init ──
+document.getElementById('sunday-date').textContent=fmt(NOW,{month:'long',day:'numeric',year:'numeric'});
+document.getElementById('prayer-date').textContent=fmt(NOW,{weekday:'long',month:'long',day:'numeric'});
+document.getElementById('enc-date').textContent=fmt(NOW,{weekday:'long',month:'long',day:'numeric'});
+renderAgenda('today');
+initAuth();
+</script>
+</body>
+</html>

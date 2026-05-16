@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>John — Plans & Billing</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #fcfaf6;
+  --bg2: #f5f2eb;
+  --surface: #ffffff;
+  --border: #e8e3d9;
+  --border2: #d9d3c7;
+  --text: #1c1917;
+  --text2: #57534e;
+  --muted: #a8a29e;
+  --orange: #c2410c;
+  --orange-light: #ea580c;
+  --orange-bg: rgba(194,65,12,0.07);
+  --orange-border: rgba(194,65,12,0.2);
+  --red: #b91c1c;
+  --red-bg: rgba(185,28,28,0.07);
+  --red-border: rgba(185,28,28,0.18);
+  --green: #15803d;
+  --green-bg: rgba(21,128,61,0.07);
+  --green-border: rgba(21,128,61,0.2);
+  --gold: #b45309;
+  --gold-bg: rgba(180,83,9,0.07);
+  --gold-border: rgba(180,83,9,0.2);
+  --r: 14px;
+}
+
+html, body {
+  min-height: 100%; background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+}
+
+/* ── Header ── */
+.header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 32px; height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.header-logo { display: flex; align-items: center; gap: 9px; }
+.header-logo svg { width: 20px; height: 20px; }
+.header-logo-name { font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: -0.03em; }
+.header-nav { display: flex; align-items: center; gap: 12px; }
+.header-link {
+  font-size: 13px; color: var(--text2); cursor: pointer;
+  padding: 5px 10px; border-radius: 6px; transition: all .12s;
+  border: none; background: none; font-family: inherit;
+}
+.header-link:hover { color: var(--text); background: var(--bg2); }
+.back-btn {
+  padding: 7px 16px; border: 1px solid var(--border2);
+  border-radius: 8px; background: transparent;
+  font-family: inherit; font-size: 13px; color: var(--text2);
+  cursor: pointer; transition: all .12s;
+}
+.back-btn:hover { border-color: var(--orange); color: var(--orange); }
+
+/* ── Main views ── */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── Pricing Page ── */
+.pricing-hero {
+  text-align: center; padding: 52px 24px 40px;
+  max-width: 680px; margin: 0 auto;
+}
+.pricing-badge {
+  display: inline-block; padding: 4px 14px;
+  background: var(--orange-bg); border: 1px solid var(--orange-border);
+  border-radius: 20px; font-size: 12px; font-weight: 600;
+  color: var(--orange); letter-spacing: 0.04em; margin-bottom: 18px;
+}
+.pricing-title {
+  font-size: clamp(28px, 5vw, 42px); font-weight: 700;
+  color: var(--text); letter-spacing: -0.04em; line-height: 1.12;
+  margin-bottom: 14px;
+}
+.pricing-sub {
+  font-size: 16px; color: var(--text2); line-height: 1.65;
+  margin-bottom: 28px;
+}
+.toggle-wrap {
+  display: flex; align-items: center; gap: 10px;
+  justify-content: center; margin-bottom: 40px;
+}
+.toggle-label { font-size: 13.5px; color: var(--text2); font-weight: 500; }
+.toggle-label.active { color: var(--text); font-weight: 600; }
+.toggle-switch {
+  width: 44px; height: 24px; background: var(--orange);
+  border-radius: 12px; position: relative; cursor: pointer;
+  transition: background .2s; border: none; flex-shrink: 0;
+}
+.toggle-switch::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 18px; height: 18px; background: white;
+  border-radius: 50%; transition: transform .2s;
+}
+.toggle-switch.yearly::after { transform: translateX(20px); }
+.save-badge {
+  background: var(--green-bg); border: 1px solid var(--green-border);
+  color: var(--green); font-size: 11px; font-weight: 700;
+  padding: 2px 8px; border-radius: 10px;
+}
+
+/* Pricing cards */
+.plans-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px; max-width: 1060px; margin: 0 auto; padding: 0 24px 60px;
+}
+.plan-card {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 18px; padding: 28px 28px 24px;
+  position: relative; transition: all .18s;
+}
+.plan-card:hover { border-color: var(--border2); box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
+.plan-card.featured {
+  border-color: var(--orange); box-shadow: 0 0 0 1px var(--orange-border), 0 8px 32px rgba(194,65,12,0.1);
+}
+.plan-card.enterprise { border-color: var(--gold-border); background: linear-gradient(135deg, var(--surface), #fffbf5); }
+
+.featured-badge {
+  position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+  background: var(--orange); color: white; font-size: 11px; font-weight: 700;
+  padding: 3px 14px; border-radius: 10px; letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.plan-name { font-size: 13px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+.plan-price-wrap { display: flex; align-items: baseline; gap: 4px; margin-bottom: 6px; }
+.plan-price { font-size: 40px; font-weight: 700; color: var(--text); letter-spacing: -0.04em; }
+.plan-period { font-size: 14px; color: var(--muted); }
+.plan-annual { font-size: 12px; color: var(--green); font-weight: 500; margin-bottom: 10px; min-height: 18px; }
+.plan-desc { font-size: 13.5px; color: var(--text2); line-height: 1.6; margin-bottom: 20px; min-height: 56px; }
+.plan-btn {
+  width: 100%; padding: 12px; border-radius: 10px;
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all .14s; margin-bottom: 24px; border: none;
+}
+.plan-btn.primary { background: var(--orange); color: white; }
+.plan-btn.primary:hover { background: var(--orange-light); transform: translateY(-1px); }
+.plan-btn.outline { background: transparent; border: 1.5px solid var(--border2); color: var(--text2); }
+.plan-btn.outline:hover { border-color: var(--orange); color: var(--orange); }
+.plan-btn.gold { background: var(--gold); color: white; }
+.plan-btn.gold:hover { background: #a14008; transform: translateY(-1px); }
+.plan-btn.current { background: var(--green-bg); border: 1.5px solid var(--green-border); color: var(--green); cursor: default; }
+
+.plan-divider { height: 1px; background: var(--border); margin-bottom: 20px; }
+.plan-features-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+.feature-row {
+  display: flex; align-items: flex-start; gap: 9px;
+  font-size: 13px; color: var(--text2); margin-bottom: 9px; line-height: 1.4;
+}
+.feature-check {
+  width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; margin-top: 1px;
+  display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700;
+}
+.fc-yes { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.fc-no { background: var(--bg2); color: var(--muted); border: 1px solid var(--border2); }
+.fc-star { background: var(--gold-bg); color: var(--gold); border: 1px solid var(--gold-border); }
+
+/* Trial banner */
+.trial-banner {
+  background: var(--orange-bg); border: 1px solid var(--orange-border);
+  border-radius: 12px; padding: 16px 20px; margin: 0 24px 24px;
+  max-width: 1060px; margin-left: auto; margin-right: auto;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+}
+.tb-text { flex: 1; }
+.tb-title { font-size: 14px; font-weight: 700; color: var(--orange); margin-bottom: 3px; }
+.tb-sub { font-size: 13px; color: var(--text2); }
+.tb-days {
+  font-size: 28px; font-weight: 700; color: var(--orange);
+  letter-spacing: -0.03em; white-space: nowrap;
+}
+.tb-days-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; text-align: center; }
+.tb-btn {
+  padding: 9px 20px; background: var(--orange); border: none;
+  border-radius: 8px; color: white; font-family: inherit;
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: all .14s;
+}
+.tb-btn:hover { background: var(--orange-light); }
+
+/* Comparison table */
+.compare-section { max-width: 860px; margin: 0 auto; padding: 0 24px 60px; }
+.compare-title { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.03em; margin-bottom: 4px; }
+.compare-sub { font-size: 13.5px; color: var(--muted); margin-bottom: 24px; }
+.compare-table { width: 100%; border-collapse: collapse; }
+.compare-table th {
+  padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted);
+  border-bottom: 2px solid var(--border); background: var(--bg);
+}
+.compare-table th:first-child { border-radius: 8px 0 0 0; }
+.compare-table th:last-child { border-radius: 0 8px 0 0; }
+.compare-table td {
+  padding: 13px 16px; font-size: 13.5px; color: var(--text2);
+  border-bottom: 1px solid var(--border);
+}
+.compare-table tr:last-child td { border-bottom: none; }
+.compare-table tr:hover td { background: var(--bg2); }
+.compare-table td:first-child { font-weight: 500; color: var(--text); }
+.ct-yes { color: var(--green); font-weight: 600; }
+.ct-no { color: var(--muted); }
+.ct-limited { color: var(--orange); font-weight: 500; }
+
+/* FAQ */
+.faq-section { max-width: 680px; margin: 0 auto; padding: 0 24px 80px; }
+.faq-title { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.03em; margin-bottom: 24px; }
+.faq-item { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; overflow: hidden; }
+.faq-q {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 15px 18px; cursor: pointer; font-size: 14px;
+  font-weight: 600; color: var(--text); background: var(--surface);
+  border: none; width: 100%; text-align: left; font-family: inherit;
+  transition: background .12s;
+}
+.faq-q:hover { background: var(--bg2); }
+.faq-q .faq-arrow { font-size: 12px; color: var(--muted); transition: transform .2s; }
+.faq-q.open .faq-arrow { transform: rotate(180deg); }
+.faq-a { padding: 0 18px; max-height: 0; overflow: hidden; transition: all .25s ease; font-size: 13.5px; color: var(--text2); line-height: 1.7; }
+.faq-a.open { padding: 0 18px 15px; max-height: 200px; }
+
+/* ── Checkout Page ── */
+.checkout-wrap {
+  max-width: 960px; margin: 0 auto; padding: 36px 24px 60px;
+  display: grid; grid-template-columns: 1fr 380px; gap: 28px;
+}
+.checkout-left {}
+.checkout-title { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.03em; margin-bottom: 24px; }
+.checkout-section { margin-bottom: 24px; }
+.cs-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 12px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.field-box { display: flex; flex-direction: column; gap: 4px; }
+.field-label { font-size: 11.5px; font-weight: 600; color: var(--text2); }
+.field-input {
+  padding: 10px 13px; background: var(--bg);
+  border: 1.5px solid var(--border2); border-radius: 8px;
+  font-family: inherit; font-size: 14px; color: var(--text);
+  outline: none; transition: border-color .18s;
+}
+.field-input:focus { border-color: var(--orange); }
+.field-input::placeholder { color: var(--muted); }
+.field-full { grid-column: 1 / -1; }
+
+/* Card input */
+.card-input-wrap {
+  background: var(--bg); border: 1.5px solid var(--border2);
+  border-radius: 8px; padding: 11px 13px;
+  display: flex; align-items: center; gap: 10px;
+  transition: border-color .18s;
+}
+.card-input-wrap:focus-within { border-color: var(--orange); }
+.card-number {
+  flex: 1; border: none; background: transparent; outline: none;
+  font-family: inherit; font-size: 14px; color: var(--text); letter-spacing: 0.08em;
+}
+.card-number::placeholder { color: var(--muted); letter-spacing: normal; }
+.card-badges { display: flex; gap: 5px; }
+.card-badge {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 4px; padding: 2px 6px; font-size: 9.5px;
+  font-weight: 700; color: var(--text2); letter-spacing: 0.04em;
+}
+
+.checkout-btn {
+  width: 100%; padding: 14px; border: none; border-radius: 10px;
+  background: var(--orange); color: white; font-family: inherit;
+  font-size: 15px; font-weight: 700; cursor: pointer; transition: all .14s;
+  letter-spacing: -0.01em;
+}
+.checkout-btn:hover { background: var(--orange-light); transform: translateY(-1px); }
+.checkout-btn:disabled { background: var(--border2); color: var(--muted); cursor: not-allowed; transform: none; }
+
+.secure-note {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11.5px; color: var(--muted); margin-top: 10px; justify-content: center;
+}
+
+/* Order summary */
+.order-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 24px; position: sticky; top: 76px;
+}
+.oc-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 18px; }
+.oc-plan { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 18px; }
+.oc-plan-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--orange); margin-top: 4px; flex-shrink: 0; }
+.oc-plan-name { font-size: 15px; font-weight: 700; color: var(--text); }
+.oc-plan-desc { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+.oc-line { display: flex; justify-content: space-between; font-size: 13.5px; color: var(--text2); margin-bottom: 9px; }
+.oc-divider { height: 1px; background: var(--border); margin: 12px 0; }
+.oc-total { display: flex; justify-content: space-between; font-size: 16px; font-weight: 700; color: var(--text); }
+.oc-trial-note {
+  margin-top: 14px; padding: 10px 12px; background: var(--green-bg);
+  border: 1px solid var(--green-border); border-radius: 8px;
+  font-size: 12px; color: var(--green); line-height: 1.5; font-weight: 500;
+}
+.oc-features { margin-top: 18px; }
+.oc-feature { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text2); margin-bottom: 7px; }
+.oc-check { width: 15px; height: 15px; border-radius: 50%; background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green); display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; flex-shrink: 0; }
+
+/* ── Billing Management Page ── */
+.billing-wrap { max-width: 720px; margin: 0 auto; padding: 36px 24px 60px; }
+.bm-title { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.03em; margin-bottom: 4px; }
+.bm-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+
+.plan-status-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 22px 24px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+}
+.psc-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; }
+.badge-active { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.badge-trial { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+.badge-cancelled { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.psc-info { flex: 1; }
+.psc-plan { font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+.psc-detail { font-size: 13px; color: var(--muted); margin-top: 3px; }
+.psc-actions { display: flex; gap: 8px; }
+.psc-btn {
+  padding: 8px 16px; border-radius: 8px; font-family: inherit; font-size: 13px;
+  font-weight: 500; cursor: pointer; transition: all .14s;
+}
+.psc-upgrade { background: var(--orange); border: none; color: white; }
+.psc-upgrade:hover { background: var(--orange-light); }
+.psc-manage { background: transparent; border: 1px solid var(--border2); color: var(--text2); }
+.psc-manage:hover { border-color: var(--orange); color: var(--orange); }
+
+.billing-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 20px 24px; margin-bottom: 16px;
+}
+.bc-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+.payment-method { display: flex; align-items: center; gap: 12px; }
+.pm-card { display: flex; align-items: center; gap: 9px; flex: 1; }
+.pm-icon { font-size: 22px; }
+.pm-info { }
+.pm-number { font-size: 14px; font-weight: 600; color: var(--text); }
+.pm-exp { font-size: 12px; color: var(--muted); }
+.pm-change { font-size: 12.5px; color: var(--orange); cursor: pointer; font-weight: 500; }
+.pm-change:hover { text-decoration: underline; }
+
+.invoice-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 13.5px;
+}
+.invoice-row:last-child { border: none; }
+.inv-date { color: var(--text2); }
+.inv-desc { color: var(--text); font-weight: 500; flex: 1; padding: 0 16px; }
+.inv-amount { color: var(--text); font-weight: 600; }
+.inv-status { font-size: 10.5px; padding: 2px 8px; border-radius: 10px; margin-left: 10px; }
+.inv-paid { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.inv-dl { font-size: 12px; color: var(--orange); cursor: pointer; margin-left: 10px; }
+.inv-dl:hover { text-decoration: underline; }
+
+/* ── Success Page ── */
+.success-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; min-height: calc(100vh - 56px);
+  padding: 40px 24px; text-align: center;
+}
+.success-circle {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: var(--green-bg); border: 2px solid var(--green-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; margin-bottom: 20px;
+  animation: popIn .4s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes popIn { from { transform:scale(0.5); opacity:0; } to { transform:scale(1); opacity:1; } }
+.success-title { font-size: 28px; font-weight: 700; color: var(--text); letter-spacing: -0.03em; margin-bottom: 10px; }
+.success-sub { font-size: 15px; color: var(--text2); line-height: 1.65; max-width: 460px; margin-bottom: 28px; }
+.success-btn {
+  padding: 13px 32px; background: var(--orange); border: none;
+  border-radius: 10px; color: white; font-family: inherit;
+  font-size: 14px; font-weight: 700; cursor: pointer; transition: all .14s;
+}
+.success-btn:hover { background: var(--orange-light); transform: translateY(-1px); }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .checkout-wrap { grid-template-columns: 1fr; }
+  .order-card { position: static; }
+  .plans-grid { grid-template-columns: 1fr; max-width: 420px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-logo">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#c2410c"/></svg>
+    <div class="header-logo-name">John</div>
+  </div>
+  <div class="header-nav">
+    <button class="header-link" onclick="showView('pricing')">Pricing</button>
+    <button class="header-link" onclick="showView('billing')">Billing</button>
+    <button class="back-btn" onclick="goToApp()">Open John</button>
+  </div>
+</div>
+
+<!-- ══ PRICING VIEW ══ -->
+<div class="view active" id="view-pricing">
+
+  <!-- Trial banner for returning users -->
+  <div class="trial-banner" id="trial-banner" style="display:none">
+    <div>
+      <div class="tb-days" id="trial-days-num">7</div>
+      <div class="tb-days-label">Days Left</div>
+    </div>
+    <div class="tb-text">
+      <div class="tb-title">Your free trial is active</div>
+      <div class="tb-sub">You have full access to all features. Upgrade anytime to keep John after the trial.</div>
+    </div>
+    <button class="tb-btn" onclick="showView('checkout','church')">Upgrade Now</button>
+  </div>
+
+  <div class="pricing-hero">
+    <div class="pricing-badge">MINISTRY-FIRST PRICING</div>
+    <div class="pricing-title">The assistant your<br>ministry deserves</div>
+    <div class="pricing-sub">John handles sermon prep, member follow-up, travel, prayer triage, and more — so you can focus on the people God called you to serve.</div>
+
+    <div class="toggle-wrap">
+      <div class="toggle-label active" id="lbl-monthly">Monthly</div>
+      <button class="toggle-switch" id="billingToggle" onclick="toggleBilling()"></button>
+      <div class="toggle-label" id="lbl-yearly">Yearly</div>
+      <span class="save-badge">Save 25%</span>
+    </div>
+  </div>
+
+  <div class="plans-grid">
+
+    <!-- Solo -->
+    <div class="plan-card">
+      <div class="plan-name">Solo</div>
+      <div class="plan-price-wrap">
+        <div class="plan-price" id="solo-price">$29</div>
+        <div class="plan-period">/month</div>
+      </div>
+      <div class="plan-annual" id="solo-annual"></div>
+      <div class="plan-desc">One pastor. Full John experience for solo ministry leaders.</div>
+      <button class="plan-btn outline" onclick="startCheckout('solo')">Start Free Trial</button>
+      <div class="plan-divider"></div>
+      <div class="plan-features-title">What's included</div>
+      <div class="feature-row"><div class="feature-check fc-yes">✓</div>Unlimited chat with John</div>
+      <div class="feature-row"><div class="feature-check fc-yes">✓</div>Sermon prep & message drafting</div>
+      <div class="feature-row"><div class="feature-check fc-yes">✓</div>Member database (up to 200)</div>
+      <div class="feature-row"><div class="feature-check fc-yes">✓</div>Prayer request tracking</div>
+      <div class="feature-row"><div class="feature-check fc-yes">✓</div>Travel booking assistance</div>
+      <div class="feature-row"><div class="feature-check fc-yes">✓</div>Persistent conversation memory</div>
+      <div class="feature-row"><div class="feature-check fc-yes">✓</div>Document creation (Word, PDF, Excel)</div>
+      <div class="feature-row"><div class="feature-check fc-no">—</div><span style="color:var(--muted)">Team access</span></div>
+      <div class="feature-row"><div class="feature-check fc-no">—</div><span style="color:var(--muted)">Sunday report automation</span></div>
+    </div>
+
+    <!-- Church (Featured) -->
+    <div class="plan-card featured">
+      <div class="featured-badge">MOST POPULAR</div>
+      <div class="plan-name">Church</div>
+      <div class="plan-price-wrap">
+        <div class="plan-price" id="church-price">$79</div>
+        <div class="plan-period">/month</div>
+      </div>
+      <div class="plan-annual" id="church-annual"></div>
+      <div class="plan-desc">Up to 5 staff members. Everything a growing church needs to run ministry well.</div>
+      <button class="plan-btn primary" onclick="startCheckout('church')">Start Free Trial</button>
+      <div class="plan-divider"></div>
+      <div class="plan-features-title">Everything in Solo, plus</div>
+      <div class="feature-row"><div class="feature-check fc-yes">✓</div>Up to 5 team members</div>
+      <div class="feature-row"><div class="feature-check fc-yes">✓</div>Role-based access control</div>
+      <div class="feature-row"><div class="feature-check fc-yes">✓</div>Member database (up to 1,000)</div>
+      <div class="feature-row"><div class="feature-check fc-yes">✓</div>Automated Sunday reports</div>
+      <div class="feature-row"><div class="feature-check fc-yes">✓</div>Daily staff encouragement delivery</div>
+      <div class="feature-row"><div class="feature-check fc-yes">✓</div>Staff calendar & scheduling</div>
+      <div class="feature-row"><div class="feature-check fc-yes">✓</div>Priority response from John</div>
+      <div class="feature-row"><div class="feature-check fc-yes">✓</div>14-day free trial</div>
+    </div>
+
+    <!-- Network / Enterprise -->
+    <div class="plan-card enterprise">
+      <div class="plan-name" style="color:var(--gold)">Network</div>
+      <div class="plan-price-wrap">
+        <div class="plan-price" id="network-price">$199</div>
+        <div class="plan-period">/month</div>
+      </div>
+      <div class="plan-annual" id="network-annual"></div>
+      <div class="plan-desc">Unlimited staff. Multiple campuses. Built for growing ministries and church networks.</div>
+      <button class="plan-btn gold" onclick="startCheckout('network')">Start Free Trial</button>
+      <div class="plan-divider"></div>
+      <div class="plan-features-title">Everything in Church, plus</div>
+      <div class="feature-row"><div class="feature-check fc-star">★</div>Unlimited team members</div>
+      <div class="feature-row"><div class="feature-check fc-star">★</div>Multiple campus support</div>
+      <div class="feature-row"><div class="feature-check fc-star">★</div>Unlimited member database</div>
+      <div class="feature-row"><div class="feature-check fc-star">★</div>Custom John persona branding</div>
+      <div class="feature-row"><div class="feature-check fc-star">★</div>AG District / network reporting</div>
+      <div class="feature-row"><div class="feature-check fc-star">★</div>White-glove onboarding call</div>
+      <div class="feature-row"><div class="feature-check fc-star">★</div>Direct support line</div>
+      <div class="feature-row"><div class="feature-check fc-star">★</div>Custom integrations on request</div>
+    </div>
+
+  </div>
+
+  <!-- Comparison table -->
+  <div class="compare-section">
+    <div class="compare-title">Full comparison</div>
+    <div class="compare-sub">See exactly what each plan includes</div>
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Solo</th>
+          <th>Church</th>
+          <th>Network</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Unlimited John conversations</td><td class="ct-yes">Yes</td><td class="ct-yes">Yes</td><td class="ct-yes">Yes</td></tr>
+        <tr><td>Sermon prep & message drafting</td><td class="ct-yes">Yes</td><td class="ct-yes">Yes</td><td class="ct-yes">Yes</td></tr>
+        <tr><td>Travel booking</td><td class="ct-yes">Yes</td><td class="ct-yes">Yes</td><td class="ct-yes">Yes</td></tr>
+        <tr><td>Prayer request tracking</td><td class="ct-yes">Yes</td><td class="ct-yes">Yes</td><td class="ct-yes">Yes</td></tr>
+        <tr><td>Document creation</td><td class="ct-yes">Yes</td><td class="ct-yes">Yes</td><td class="ct-yes">Yes</td></tr>
+        <tr><td>Conversation memory</td><td class="ct-yes">Yes</td><td class="ct-yes">Yes</td><td class="ct-yes">Yes</td></tr>
+        <tr><td>Member database</td><td class="ct-limited">200 members</td><td class="ct-limited">1,000 members</td><td class="ct-yes">Unlimited</td></tr>
+        <tr><td>Team members</td><td class="ct-no">1 (you)</td><td class="ct-limited">Up to 5</td><td class="ct-yes">Unlimited</td></tr>
+        <tr><td>Role-based permissions</td><td class="ct-no">—</td><td class="ct-yes">Yes</td><td class="ct-yes">Yes</td></tr>
+        <tr><td>Sunday reports</td><td class="ct-no">—</td><td class="ct-yes">Automated</td><td class="ct-yes">Automated</td></tr>
+        <tr><td>Daily staff encouragement</td><td class="ct-no">—</td><td class="ct-yes">Yes</td><td class="ct-yes">Yes</td></tr>
+        <tr><td>Multiple campuses</td><td class="ct-no">—</td><td class="ct-no">—</td><td class="ct-yes">Yes</td></tr>
+        <tr><td>Custom branding</td><td class="ct-no">—</td><td class="ct-no">—</td><td class="ct-yes">Yes</td></tr>
+        <tr><td>Onboarding support</td><td class="ct-no">Self-serve</td><td class="ct-limited">Email support</td><td class="ct-yes">White-glove call</td></tr>
+        <tr><td>Free trial</td><td class="ct-yes">7 days</td><td class="ct-yes">14 days</td><td class="ct-yes">14 days</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- FAQ -->
+  <div class="faq-section">
+    <div class="faq-title">Questions</div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">Is there a free trial? <span class="faq-arrow">▼</span></button>
+      <div class="faq-a">Yes — Solo includes a 7-day free trial, Church and Network include 14 days. No credit card required to start.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">Can I cancel anytime? <span class="faq-arrow">▼</span></button>
+      <div class="faq-a">Absolutely. Cancel any time from your billing page — no penalties, no questions asked. Your data stays available through the end of your paid period.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">What denominations does John support? <span class="faq-arrow">▼</span></button>
+      <div class="faq-a">John was built with deep Assemblies of God doctrine and culture, but he has full working knowledge of every major Christian tradition — Baptist, Methodist, Presbyterian, CoG, COGIC, Catholic, Non-denominational, and more. You set your denomination in onboarding and John leads from that framework.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">Is my church data private? <span class="faq-arrow">▼</span></button>
+      <div class="faq-a">Your member database, conversations, and church profile are stored locally on your device. We never sell your data. Conversations with John go through Anthropic's API which has strict privacy policies — no training on your data.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">Can I switch plans later? <span class="faq-arrow">▼</span></button>
+      <div class="faq-a">Yes — upgrade or downgrade anytime from your billing page. Upgrades take effect immediately. Downgrades take effect at the next billing cycle.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">Do you offer ministry discounts? <span class="faq-arrow">▼</span></button>
+      <div class="faq-a">Yes. Small churches (under 100 members) and church plants may qualify for a reduced rate. Reach out directly — we believe every pastor deserves this tool regardless of budget.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CHECKOUT VIEW ══ -->
+<div class="view" id="view-checkout">
+  <div class="checkout-wrap">
+    <div class="checkout-left">
+      <div class="checkout-title">Complete your subscription</div>
+
+      <div class="checkout-section">
+        <div class="cs-title">Your information</div>
+        <div class="field-row">
+          <div class="field-box"><label class="field-label">First name</label><input class="field-input" id="co-first" placeholder="First name" /></div>
+          <div class="field-box"><label class="field-label">Last name</label><input class="field-input" id="co-last" placeholder="Last name" /></div>
+        </div>
+        <div class="field-row">
+          <div class="field-box field-full"><label class="field-label">Email</label><input class="field-input" id="co-email" type="email" placeholder="pastor@church.com" /></div>
+        </div>
+        <div class="field-row">
+          <div class="field-box field-full"><label class="field-label">Church name</label><input class="field-input" id="co-church" placeholder="Grace Fellowship Church" /></div>
+        </div>
+      </div>
+
+      <div class="checkout-section">
+        <div class="cs-title">Payment details</div>
+        <div class="card-input-wrap" style="margin-bottom:10px">
+          <input class="card-number" id="co-card" placeholder="Card number" maxlength="19" oninput="formatCard(this)" />
+          <div class="card-badges">
+            <div class="card-badge">VISA</div>
+            <div class="card-badge">MC</div>
+            <div class="card-badge">AMEX</div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-box"><label class="field-label">Expiry</label><input class="field-input" id="co-exp" placeholder="MM / YY" maxlength="7" oninput="formatExp(this)" /></div>
+          <div class="field-box"><label class="field-label">CVC</label><input class="field-input" id="co-cvc" placeholder="•••" maxlength="4" type="password" /></div>
+        </div>
+      </div>
+
+      <div class="checkout-section">
+        <div class="cs-title">Billing address</div>
+        <div class="field-row">
+          <div class="field-box field-full"><label class="field-label">Address</label><input class="field-input" id="co-address" placeholder="123 Main St" /></div>
+        </div>
+        <div class="field-row">
+          <div class="field-box"><label class="field-label">City</label><input class="field-input" id="co-city" placeholder="City" /></div>
+          <div class="field-box"><label class="field-label">State</label><input class="field-input" id="co-state" placeholder="TX" maxlength="2" /></div>
+        </div>
+        <div class="field-row">
+          <div class="field-box"><label class="field-label">ZIP</label><input class="field-input" id="co-zip" placeholder="75001" maxlength="5" /></div>
+        </div>
+      </div>
+
+      <div id="co-error" style="display:none;background:var(--red-bg);border:1px solid var(--red-border);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:14px"></div>
+
+      <button class="checkout-btn" id="coBtn" onclick="processCheckout()">
+        Start Free Trial — No Charge Today
+      </button>
+      <div class="secure-note">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Secured by Stripe · Cancel anytime · No charge during trial
+      </div>
+    </div>
+
+    <div>
+      <div class="order-card">
+        <div class="oc-title">Order summary</div>
+        <div class="oc-plan">
+          <div class="oc-plan-dot"></div>
+          <div>
+            <div class="oc-plan-name" id="oc-plan-name">Church Plan</div>
+            <div class="oc-plan-desc" id="oc-plan-desc">Billed monthly · Up to 5 team members</div>
+          </div>
+        </div>
+        <div class="oc-line"><span>Subtotal</span><span id="oc-subtotal">$79.00</span></div>
+        <div class="oc-line"><span>Trial discount</span><span style="color:var(--green)" id="oc-discount">–$79.00</span></div>
+        <div class="oc-divider"></div>
+        <div class="oc-total"><span>Due today</span><span>$0.00</span></div>
+        <div class="oc-trial-note" id="oc-trial-note">Your 14-day free trial starts today. You won't be charged until <strong id="oc-charge-date"></strong>. Cancel anytime before that — zero cost.</div>
+        <div class="oc-features">
+          <div class="oc-feature"><div class="oc-check">✓</div>Full access during trial</div>
+          <div class="oc-feature"><div class="oc-check">✓</div>Cancel before trial ends — no charge</div>
+          <div class="oc-feature"><div class="oc-check">✓</div>Reminder email 3 days before charge</div>
+          <div class="oc-feature"><div class="oc-check">✓</div>Secure payment via Stripe</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BILLING MANAGEMENT VIEW ══ -->
+<div class="view" id="view-billing">
+  <div class="billing-wrap">
+    <div class="bm-title">Billing & Subscription</div>
+    <div class="bm-sub">Manage your John subscription, payment method, and invoices</div>
+
+    <!-- Current plan -->
+    <div class="plan-status-card">
+      <span class="psc-badge" id="sub-badge">Active</span>
+      <div class="psc-info">
+        <div class="psc-plan" id="sub-plan-name">Church Plan</div>
+        <div class="psc-detail" id="sub-plan-detail">$79 / month · Renews June 14, 2025 · 5 team members</div>
+      </div>
+      <div class="psc-actions">
+        <button class="psc-btn psc-upgrade" onclick="showView('pricing')">Change Plan</button>
+        <button class="psc-btn psc-manage" onclick="cancelPlan()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Payment method -->
+    <div class="billing-card">
+      <div class="bc-title">Payment Method</div>
+      <div class="payment-method">
+        <div class="pm-card">
+          <div class="pm-icon">💳</div>
+          <div>
+            <div class="pm-number">Visa ending in 4242</div>
+            <div class="pm-exp">Expires 08 / 27</div>
+          </div>
+        </div>
+        <div class="pm-change" onclick="showUpdateCard()">Update card</div>
+      </div>
+    </div>
+
+    <!-- Invoice history -->
+    <div class="billing-card">
+      <div class="bc-title">Invoice History</div>
+      <div class="invoice-row"><div class="inv-date">May 1, 2025</div><div class="inv-desc">Church Plan — May 2025</div><div class="inv-amount">$79.00</div><span class="inv-status inv-paid">Paid</span><div class="inv-dl" onclick="downloadInvoice('may25')">PDF</div></div>
+      <div class="invoice-row"><div class="inv-date">Apr 1, 2025</div><div class="inv-desc">Church Plan — April 2025</div><div class="inv-amount">$79.00</div><span class="inv-status inv-paid">Paid</span><div class="inv-dl" onclick="downloadInvoice('apr25')">PDF</div></div>
+      <div class="invoice-row"><div class="inv-date">Mar 1, 2025</div><div class="inv-desc">Church Plan — March 2025</div><div class="inv-amount">$79.00</div><span class="inv-status inv-paid">Paid</span><div class="inv-dl" onclick="downloadInvoice('mar25')">PDF</div></div>
+      <div class="invoice-row"><div class="inv-date">Feb 15, 2025</div><div class="inv-desc">Church Plan — First payment (after trial)</div><div class="inv-amount">$79.00</div><span class="inv-status inv-paid">Paid</span><div class="inv-dl" onclick="downloadInvoice('feb25')">PDF</div></div>
+    </div>
+
+    <!-- Danger zone -->
+    <div class="billing-card" style="border-color:var(--red-border)">
+      <div class="bc-title" style="color:var(--red)">Cancel Subscription</div>
+      <p style="font-size:13.5px;color:var(--text2);line-height:1.65;margin-bottom:14px">Cancelling will keep John active until the end of your current billing period (June 14, 2025). After that, you'll lose access but your data stays on your device.</p>
+      <button class="psc-btn psc-manage" style="border-color:var(--red-border);color:var(--red)" onclick="cancelPlan()">Cancel Subscription</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SUCCESS VIEW ══ -->
+<div class="view" id="view-success">
+  <div class="success-wrap">
+    <div class="success-circle">✓</div>
+    <div class="success-title">You're all set, Pastor.</div>
+    <div class="success-sub">Your <strong id="success-plan">Church Plan</strong> trial is active. John is ready to serve your ministry. You won't be charged until <strong id="success-date"></strong> — and you can cancel before that for free.</div>
+    <button class="success-btn" onclick="goToApp()">Open John</button>
+    <div style="font-size:12px;color:var(--muted);margin-top:14px">A confirmation has been noted · Reminder sent 3 days before charge</div>
+  </div>
+</div>
+
+<script>
+// ── State ──
+let billingYearly = false;
+let selectedPlan = 'church';
+
+const PLANS = {
+  solo:    { name:'Solo Plan',    monthly:29, yearly:22, trial:7,  desc:'1 pastor · Up to 200 members' },
+  church:  { name:'Church Plan',  monthly:79, yearly:59, trial:14, desc:'Up to 5 staff · Up to 1,000 members' },
+  network: { name:'Network Plan', monthly:199,yearly:149,trial:14, desc:'Unlimited staff · Multiple campuses' },
+};
+
+// ── View routing ──
+function showView(id, plan) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  if (id === 'checkout' && plan) {
+    selectedPlan = plan;
+    populateCheckout(plan);
+  }
+  window.scrollTo(0, 0);
+}
+
+function goToApp() {
+  // In production: redirect to john-pastoral-ai-v5.html
+  window.location.href = 'john-pastoral-ai-v5.html';
+}
+
+// ── Billing toggle ──
+function toggleBilling() {
+  billingYearly = !billingYearly;
+  const toggle = document.getElementById('billingToggle');
+  toggle.classList.toggle('yearly', billingYearly);
+  document.getElementById('lbl-monthly').classList.toggle('active', !billingYearly);
+  document.getElementById('lbl-yearly').classList.toggle('active', billingYearly);
+  updatePrices();
+}
+
+function updatePrices() {
+  Object.entries(PLANS).forEach(([key, p]) => {
+    const price = billingYearly ? p.yearly : p.monthly;
+    const el = document.getElementById(key + '-price');
+    const annualEl = document.getElementById(key + '-annual');
+    if (el) el.textContent = '$' + price;
+    if (annualEl) {
+      annualEl.textContent = billingYearly
+        ? `$${price * 12}/year · Save $${(p.monthly - p.yearly) * 12}`
+        : '';
+    }
+  });
+}
+
+// ── Checkout ──
+function startCheckout(plan) {
+  selectedPlan = plan;
+  showView('checkout', plan);
+}
+
+function populateCheckout(plan) {
+  const p = PLANS[plan];
+  const price = billingYearly ? p.yearly : p.monthly;
+  const trialEnd = new Date();
+  trialEnd.setDate(trialEnd.getDate() + p.trial);
+  const trialEndStr = trialEnd.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
+
+  document.getElementById('oc-plan-name').textContent = p.name;
+  document.getElementById('oc-plan-desc').textContent = `Billed ${billingYearly ? 'yearly' : 'monthly'} · ${p.desc}`;
+  document.getElementById('oc-subtotal').textContent = `$${price}.00`;
+  document.getElementById('oc-discount').textContent = `–$${price}.00`;
+  document.getElementById('oc-charge-date').textContent = trialEndStr;
+  document.getElementById('oc-trial-note').querySelector('#oc-charge-date').textContent = trialEndStr;
+  document.getElementById('coBtn').textContent = `Start ${p.trial}-Day Free Trial — No Charge Today`;
+}
+
+function formatCard(input) {
+  let v = input.value.replace(/\D/g, '').substring(0, 16);
+  input.value = v.replace(/(.{4})/g, '$1 ').trim();
+}
+function formatExp(input) {
+  let v = input.value.replace(/\D/g, '').substring(0, 4);
+  if (v.length >= 2) v = v.slice(0, 2) + ' / ' + v.slice(2);
+  input.value = v;
+}
+
+async function processCheckout() {
+  const btn = document.getElementById('coBtn');
+  const err = document.getElementById('co-error');
+  err.style.display = 'none';
+
+  // Validate
+  const first = document.getElementById('co-first').value.trim();
+  const last = document.getElementById('co-last').value.trim();
+  const email = document.getElementById('co-email').value.trim();
+  const church = document.getElementById('co-church').value.trim();
+  const card = document.getElementById('co-card').value.replace(/\s/g,'');
+  const exp = document.getElementById('co-exp').value;
+  const cvc = document.getElementById('co-cvc').value;
+
+  if (!first || !last) return showCoError('Please enter your name.');
+  if (!email || !email.includes('@')) return showCoError('Please enter a valid email address.');
+  if (!church) return showCoError('Please enter your church name.');
+  if (card.length < 15) return showCoError('Please enter a valid card number.');
+  if (!exp || exp.length < 4) return showCoError('Please enter your card expiry date.');
+  if (!cvc || cvc.length < 3) return showCoError('Please enter your CVC.');
+
+  // Simulate processing
+  btn.textContent = 'Processing…'; btn.disabled = true;
+  await new Promise(r => setTimeout(r, 1800));
+
+  // Save subscription to localStorage
+  const p = PLANS[selectedPlan];
+  const trialEnd = new Date(); trialEnd.setDate(trialEnd.getDate() + p.trial);
+  const sub = {
+    plan: selectedPlan, planName: p.name,
+    status: 'trial', email, church,
+    trialEnds: trialEnd.toISOString(),
+    startedAt: new Date().toISOString(),
+    billing: billingYearly ? 'yearly' : 'monthly',
+    price: billingYearly ? p.yearly : p.monthly,
+  };
+  localStorage.setItem('john_subscription', JSON.stringify(sub));
+
+  // Show success
+  document.getElementById('success-plan').textContent = p.name;
+  document.getElementById('success-date').textContent = trialEnd.toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'});
+  showView('success');
+}
+
+function showCoError(msg) {
+  const err = document.getElementById('co-error');
+  err.textContent = msg; err.style.display = 'block';
+  const btn = document.getElementById('coBtn');
+  const p = PLANS[selectedPlan];
+  btn.textContent = `Start ${p.trial}-Day Free Trial — No Charge Today`;
+  btn.disabled = false;
+}
+
+// ── Billing management ──
+function loadBillingView() {
+  const raw = localStorage.getItem('john_subscription');
+  if (!raw) return;
+  const sub = JSON.parse(raw);
+  const p = PLANS[sub.plan] || {};
+  const trialEnd = new Date(sub.trialEnds);
+  const renewStr = trialEnd.toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'});
+
+  document.getElementById('sub-badge').textContent = sub.status === 'trial' ? 'Trial' : 'Active';
+  document.getElementById('sub-badge').className = 'psc-badge ' + (sub.status === 'trial' ? 'badge-trial' : 'badge-active');
+  document.getElementById('sub-plan-name').textContent = p.name || sub.planName;
+  document.getElementById('sub-plan-detail').textContent = `$${sub.price} / ${sub.billing} · ${sub.status === 'trial' ? 'Trial ends' : 'Renews'} ${renewStr}`;
+}
+
+function cancelPlan() {
+  if (!confirm('Are you sure you want to cancel? John will remain active through your current period.')) return;
+  const raw = localStorage.getItem('john_subscription');
+  if (raw) {
+    const sub = JSON.parse(raw);
+    sub.status = 'cancelled';
+    localStorage.setItem('john_subscription', JSON.stringify(sub));
+  }
+  document.getElementById('sub-badge').textContent = 'Cancelled';
+  document.getElementById('sub-badge').className = 'psc-badge badge-cancelled';
+  alert('Subscription cancelled. John remains active through your current period.');
+}
+
+function showUpdateCard() {
+  showView('checkout', selectedPlan);
+  document.getElementById('coBtn').textContent = 'Update Payment Method';
+}
+
+function downloadInvoice(id) {
+  const content = `JOHN PASTORAL ASSISTANT\nInvoice\n\nDate: ${new Date().toLocaleDateString()}\nPlan: Church Plan\nAmount: $79.00\nStatus: Paid\n\nThank you for your continued trust in John.`;
+  const blob = new Blob([content], {type:'text/plain'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `john-invoice-${id}.txt`; a.click();
+}
+
+// ── Trial banner ──
+function checkTrial() {
+  const raw = localStorage.getItem('john_subscription');
+  if (!raw) return;
+  const sub = JSON.parse(raw);
+  if (sub.status !== 'trial') return;
+  const daysLeft = Math.max(0, Math.ceil((new Date(sub.trialEnds) - new Date()) / 86400000));
+  document.getElementById('trial-days-num').textContent = daysLeft;
+  document.getElementById('trial-banner').style.display = 'flex';
+}
+
+// ── FAQ ──
+function toggleFaq(btn) {
+  btn.classList.toggle('open');
+  const answer = btn.nextElementSibling;
+  answer.classList.toggle('open');
+}
+
+// ── Init ──
+updatePrices();
+checkTrial();
+loadBillingView();
+
+// Check if coming from John app
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('view')) showView(urlParams.get('view'), urlParams.get('plan'));
+</script>
+</body>
+</html>

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>John — Icon Generator</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #fcfaf6; --surface: #fff; --border: #e8e3d9;
+  --text: #1c1917; --text2: #57534e; --muted: #a8a29e;
+  --orange: #c2410c; --orange-light: #ea580c;
+  --green: #15803d;
+}
+body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; padding: 40px 24px 80px; }
+h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 6px; }
+.sub { font-size: 13.5px; color: var(--muted); margin-bottom: 36px; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 40px; }
+.icon-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 18px;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.icon-label { font-size: 12px; font-weight: 700; color: var(--text2); }
+.icon-size { font-size: 11px; color: var(--muted); }
+.dl-btn {
+  width: 100%; padding: 8px; border: 1px solid var(--border);
+  border-radius: 8px; background: transparent; font-family: inherit;
+  font-size: 12.5px; color: var(--text2); cursor: pointer; transition: all .12s;
+}
+.dl-btn:hover { border-color: var(--orange); color: var(--orange); }
+.dl-btn.done { background: var(--green); border-color: var(--green); color: white; }
+
+.dl-all {
+  padding: 13px 36px; background: var(--orange); border: none;
+  border-radius: 10px; color: white; font-family: inherit;
+  font-size: 15px; font-weight: 700; cursor: pointer; transition: all .14s;
+  display: block; margin: 0 auto 16px;
+}
+.dl-all:hover { background: var(--orange-light); transform: translateY(-1px); }
+
+.instructions {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 24px 28px; max-width: 680px; margin: 0 auto;
+}
+.inst-title { font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+.inst-step { display: flex; gap: 12px; margin-bottom: 12px; font-size: 13.5px; color: var(--text2); line-height: 1.6; }
+.step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--orange); color: white; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+
+.preview-row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 24px; }
+.phone-mock {
+  background: #1a1a1a; border-radius: 16px; padding: 12px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.home-icon-wrap {
+  background: #f0ece0; border-radius: 12px; width: 56px; height: 56px;
+  display: flex; align-items: center; justify-content: center;
+}
+.home-label { font-size: 9px; color: white; }
+</style>
+</head>
+<body>
+
+<h1>John — App Icons</h1>
+<div class="sub">All PWA icon sizes generated and ready to download · Designed for iOS, Android, and desktop</div>
+
+<div class="preview-row" id="preview-row">
+  <!-- Icon previews rendered by JS -->
+</div>
+
+<button class="dl-all" onclick="downloadAll()">Download All Icons</button>
+
+<div class="grid" id="icon-grid"></div>
+
+<div class="instructions">
+  <div class="inst-title">How to use these icons</div>
+  <div class="inst-step"><div class="step-num">1</div><div>Download all icons and save them to the same folder as your john-mobile.html, john-pastoral-ai-v5.html, and john-manifest.json files.</div></div>
+  <div class="inst-step"><div class="step-num">2</div><div>The john-manifest.json already references these icon filenames — no changes needed there.</div></div>
+  <div class="inst-step"><div class="step-num">3</div><div>Upload everything to Netlify or Vercel by dragging the folder — the icons will be served automatically.</div></div>
+  <div class="inst-step"><div class="step-num">4</div><div>On iOS: open John in Safari, tap the Share button, then "Add to Home Screen." The icon appears automatically.</div></div>
+  <div class="inst-step"><div class="step-num">5</div><div>On Android: Chrome will show an "Add to Home Screen" banner automatically after a few visits, or tap the menu → "Install App."</div></div>
+</div>
+
+<script>
+const SIZES = [
+  { size: 72,  label: 'Android LDPI', filename: 'john-icon-72.png' },
+  { size: 96,  label: 'Android MDPI', filename: 'john-icon-96.png' },
+  { size: 128, label: 'Android HDPI', filename: 'john-icon-128.png' },
+  { size: 144, label: 'Android XHDPI / Shortcuts', filename: 'john-icon-144.png' },
+  { size: 152, label: 'iPad Retina', filename: 'john-icon-152.png' },
+  { size: 167, label: 'iPad Pro', filename: 'john-icon-167.png' },
+  { size: 180, label: 'iPhone Retina (iOS)', filename: 'john-icon-180.png' },
+  { size: 192, label: 'Android + PWA standard', filename: 'john-icon-192.png' },
+  { size: 256, label: 'Desktop shortcut', filename: 'john-icon-256.png' },
+  { size: 512, label: 'PWA splash / Store', filename: 'john-icon-512.png' },
+  { size: 1024, label: 'App Store / Marketing', filename: 'john-icon-1024.png' },
+];
+
+// Badge sizes
+const BADGE_SIZES = [
+  { size: 72, filename: 'john-badge-72.png' },
+  { size: 96, filename: 'john-badge-96.png' },
+];
+
+// Draw the John icon on a canvas
+function drawIcon(canvas, size, variant = 'full') {
+  const ctx = canvas.getContext('2d');
+  canvas.width = size;
+  canvas.height = size;
+
+  const r = size * 0.22; // corner radius
+
+  // Background — warm cream
+  ctx.save();
+  roundRect(ctx, 0, 0, size, size, r);
+  ctx.clip();
+
+  // Gradient background
+  const grad = ctx.createLinearGradient(0, 0, size, size);
+  grad.addColorStop(0, '#fdf8f0');
+  grad.addColorStop(1, '#f5ede0');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, size, size);
+
+  // Subtle texture — small dots
+  ctx.globalAlpha = 0.04;
+  for (let x = 0; x < size; x += size * 0.08) {
+    for (let y = 0; y < size; y += size * 0.08) {
+      ctx.beginPath();
+      ctx.arc(x, y, size * 0.012, 0, Math.PI * 2);
+      ctx.fillStyle = '#c2410c';
+      ctx.fill();
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  ctx.restore();
+
+  if (variant === 'badge') {
+    // Simple badge: just heart on orange bg
+    roundRect(ctx, 0, 0, size, size, r);
+    ctx.fillStyle = '#c2410c';
+    ctx.fill();
+    drawHeart(ctx, size, '#ffffff', 0.55);
+    return;
+  }
+
+  // Outer ring — very subtle
+  ctx.save();
+  roundRect(ctx, 1, 1, size - 2, size - 2, r);
+  ctx.strokeStyle = 'rgba(194,65,12,0.12)';
+  ctx.lineWidth = size * 0.018;
+  ctx.stroke();
+  ctx.restore();
+
+  if (variant === 'full') {
+    // Letter "J" — main element
+    const fontSize = size * 0.48;
+    ctx.save();
+    ctx.font = `700 ${fontSize}px -apple-system, Georgia, serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Shadow
+    ctx.shadowColor = 'rgba(194,65,12,0.15)';
+    ctx.shadowBlur = size * 0.08;
+    ctx.shadowOffsetY = size * 0.04;
+
+    // Gradient text
+    const textGrad = ctx.createLinearGradient(size * 0.3, size * 0.2, size * 0.7, size * 0.8);
+    textGrad.addColorStop(0, '#c2410c');
+    textGrad.addColorStop(1, '#9a3310');
+    ctx.fillStyle = textGrad;
+    ctx.fillText('J', size * 0.5, size * 0.44);
+    ctx.restore();
+
+    // Heart — bottom right corner accent
+    drawHeart(ctx, size, '#c2410c', 0.24);
+
+    // Small green dot (online indicator feel)
+    if (size >= 128) {
+      const dotR = size * 0.075;
+      const dotX = size * 0.72;
+      const dotY = size * 0.28;
+      ctx.beginPath();
+      ctx.arc(dotX, dotY, dotR, 0, Math.PI * 2);
+      ctx.fillStyle = '#15803d';
+      ctx.fill();
+      // White ring around dot
+      ctx.beginPath();
+      ctx.arc(dotX, dotY, dotR + size * 0.022, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(253,248,240,0.9)';
+      ctx.lineWidth = size * 0.022;
+      ctx.stroke();
+    }
+  }
+}
+
+function drawHeart(ctx, size, color, scale) {
+  const cx = size * 0.5;
+  const cy = size * (1 - scale * 0.55);
+  const s = size * scale * 0.42;
+
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.globalAlpha = color === '#ffffff' ? 1 : 0.9;
+  ctx.beginPath();
+
+  // Heart path scaled
+  const scaleF = s / 10;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(scaleF, scaleF);
+  ctx.beginPath();
+  // Heart shape
+  ctx.moveTo(0, 3);
+  ctx.bezierCurveTo(-5, -2, -10, 0, -10, 5);
+  ctx.bezierCurveTo(-10, 10, -5, 14, 0, 18);
+  ctx.bezierCurveTo(5, 14, 10, 10, 10, 5);
+  ctx.bezierCurveTo(10, 0, 5, -2, 0, 3);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function canvasToBlob(canvas) {
+  return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+}
+
+async function downloadIcon(size, filename, variant = 'full') {
+  const canvas = document.createElement('canvas');
+  drawIcon(canvas, size, variant);
+  const blob = await canvasToBlob(canvas);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function downloadAll() {
+  const btn = document.querySelector('.dl-all');
+  btn.textContent = 'Generating…'; btn.disabled = true;
+
+  for (const icon of SIZES) {
+    await downloadIcon(icon.size, icon.filename);
+    await new Promise(r => setTimeout(r, 120));
+  }
+  for (const b of BADGE_SIZES) {
+    await downloadIcon(b.size, b.filename, 'badge');
+    await new Promise(r => setTimeout(r, 100));
+  }
+
+  btn.textContent = '✓ All Icons Downloaded';
+  btn.style.background = '#15803d';
+  setTimeout(() => { btn.textContent = 'Download All Icons'; btn.style.background = ''; btn.disabled = false; }, 3000);
+
+  // Mark all individual buttons done
+  document.querySelectorAll('.dl-btn').forEach(b => { b.textContent = '✓ Downloaded'; b.classList.add('done'); });
+  setTimeout(() => {
+    document.querySelectorAll('.dl-btn').forEach(b => { b.textContent = 'Download'; b.classList.remove('done'); });
+  }, 3500);
+}
+
+// Render the grid
+function renderGrid() {
+  const grid = document.getElementById('icon-grid');
+  const preview = document.getElementById('preview-row');
+
+  // Preview row — show a few key sizes
+  const previewSizes = [32, 64, 96, 192];
+  previewSizes.forEach(sz => {
+    const canvas = document.createElement('canvas');
+    drawIcon(canvas, sz);
+    canvas.style.cssText = `border-radius:${Math.round(sz*0.22)}px;box-shadow:0 2px 12px rgba(0,0,0,0.12);`;
+    preview.appendChild(canvas);
+  });
+
+  // Phone mock
+  const mock = document.createElement('div');
+  mock.className = 'phone-mock';
+  const wrap = document.createElement('div');
+  wrap.className = 'home-icon-wrap';
+  const c192 = document.createElement('canvas');
+  drawIcon(c192, 56);
+  c192.style.borderRadius = '12px';
+  wrap.appendChild(c192);
+  const lbl = document.createElement('div');
+  lbl.className = 'home-label';
+  lbl.textContent = 'John';
+  mock.appendChild(wrap);
+  mock.appendChild(lbl);
+  preview.appendChild(mock);
+
+  // Main grid cards
+  SIZES.forEach(icon => {
+    const card = document.createElement('div');
+    card.className = 'icon-card';
+
+    const canvas = document.createElement('canvas');
+    const displaySize = Math.min(icon.size, 96);
+    drawIcon(canvas, icon.size);
+    canvas.style.cssText = `width:${displaySize}px;height:${displaySize}px;border-radius:${Math.round(displaySize*0.22)}px;box-shadow:0 2px 12px rgba(0,0,0,0.1);`;
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'icon-label';
+    nameEl.textContent = `${icon.size}×${icon.size}`;
+
+    const descEl = document.createElement('div');
+    descEl.className = 'icon-size';
+    descEl.textContent = icon.label;
+
+    const btn = document.createElement('button');
+    btn.className = 'dl-btn';
+    btn.textContent = 'Download';
+    btn.onclick = async () => {
+      btn.textContent = 'Saving…';
+      await downloadIcon(icon.size, icon.filename);
+      btn.textContent = '✓ Downloaded';
+      btn.classList.add('done');
+      setTimeout(() => { btn.textContent = 'Download'; btn.classList.remove('done'); }, 2500);
+    };
+
+    card.appendChild(canvas);
+    card.appendChild(nameEl);
+    card.appendChild(descEl);
+    card.appendChild(btn);
+    grid.appendChild(card);
+  });
+
+  // Add badge icons to grid
+  BADGE_SIZES.forEach(b => {
+    const card = document.createElement('div');
+    card.className = 'icon-card';
+    const canvas = document.createElement('canvas');
+    drawIcon(canvas, b.size, 'badge');
+    canvas.style.cssText = `width:${b.size}px;height:${b.size}px;border-radius:${Math.round(b.size*0.22)}px;box-shadow:0 2px 12px rgba(0,0,0,0.1);`;
+    const nameEl = document.createElement('div'); nameEl.className = 'icon-label'; nameEl.textContent = `${b.size}×${b.size}`;
+    const descEl = document.createElement('div'); descEl.className = 'icon-size'; descEl.textContent = 'Notification badge';
+    const btn = document.createElement('button'); btn.className = 'dl-btn'; btn.textContent = 'Download';
+    btn.onclick = async () => { await downloadIcon(b.size, b.filename, 'badge'); btn.textContent = '✓'; btn.classList.add('done'); };
+    card.appendChild(canvas); card.appendChild(nameEl); card.appendChild(descEl); card.appendChild(btn);
+    grid.appendChild(card);
+  });
+}
+
+renderGrid();
+</script>
+</body>
+</html>

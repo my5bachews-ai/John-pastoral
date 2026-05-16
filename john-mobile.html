@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="John">
+<meta name="theme-color" content="#fcfaf6">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="John">
+<link rel="manifest" href="john-manifest.json">
+<!-- Apple touch icons -->
+<meta name="apple-mobile-web-app-title" content="John">
+<title>John — Pastoral Assistant</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #fcfaf6;
+  --bg2: #f5f2eb;
+  --surface: #ffffff;
+  --border: #e8e3d9;
+  --border2: #d9d3c7;
+  --text: #1c1917;
+  --text2: #57534e;
+  --muted: #a8a29e;
+  --orange: #c2410c;
+  --orange-light: #ea580c;
+  --orange-bg: rgba(194,65,12,0.08);
+  --orange-border: rgba(194,65,12,0.22);
+  --red: #b91c1c;
+  --red-bg: rgba(185,28,28,0.07);
+  --red-border: rgba(185,28,28,0.18);
+  --green: #15803d;
+  --green-bg: rgba(21,128,61,0.07);
+  /* Safe areas for notch/home bar */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+html { height: 100%; }
+body {
+  height: 100%; background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 15px; overflow: hidden;
+  padding-top: var(--sat);
+  padding-bottom: var(--sab);
+  padding-left: var(--sal);
+  padding-right: var(--sar);
+}
+
+/* ── App shell ── */
+.app {
+  display: flex; flex-direction: column;
+  height: 100%; overflow: hidden;
+}
+
+/* ── Mobile nav bar (top) ── */
+.nav-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px 10px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+  position: relative;
+}
+.nav-title {
+  display: flex; align-items: center; gap: 8px;
+}
+.nav-heart svg { width: 18px; height: 18px; }
+.nav-name { font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: -0.03em; }
+.nav-right { display: flex; align-items: center; gap: 10px; }
+.nav-icon-btn {
+  width: 36px; height: 36px; border-radius: 9px;
+  background: var(--bg2); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text2); transition: all .12s; flex-shrink: 0;
+}
+.nav-icon-btn:active { background: var(--border2); }
+.nav-av {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--text); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  flex-shrink: 0;
+}
+.emg-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--red); position: absolute; top: 10px; right: 14px;
+  border: 2px solid var(--surface); animation: blink 1.5s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1}50%{opacity:.3} }
+
+/* ── Scrollable content ── */
+.content {
+  flex: 1; overflow: hidden; display: flex; flex-direction: column;
+}
+
+/* ── HOME / HERO ── */
+.home-view {
+  flex: 1; overflow-y: auto;
+  padding: 20px 16px 100px;
+  display: flex; flex-direction: column;
+  gap: 14px;
+}
+.home-view::-webkit-scrollbar { display: none; }
+
+.greeting-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 20px;
+}
+.gc-greeting {
+  font-size: 21px; font-weight: 700; color: var(--text);
+  letter-spacing: -0.03em; line-height: 1.2; margin-bottom: 6px;
+}
+.gc-date { font-size: 12.5px; color: var(--muted); margin-bottom: 16px; }
+.gc-input-wrap {
+  background: var(--bg); border: 1.5px solid var(--border2);
+  border-radius: 12px; padding: 12px 12px 10px 14px;
+  display: flex; align-items: flex-end; gap: 8px;
+  transition: border-color .18s;
+}
+.gc-input-wrap:focus-within { border-color: var(--orange); }
+.gc-textarea {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--text); font-family: inherit; font-size: 15px;
+  line-height: 1.5; resize: none; min-height: 22px; max-height: 100px;
+}
+.gc-textarea::placeholder { color: var(--muted); }
+.gc-send {
+  background: var(--orange); border: none; border-radius: 9px;
+  width: 36px; height: 36px; display: flex; align-items: center;
+  justify-content: center; cursor: pointer; transition: all .14s; flex-shrink: 0;
+}
+.gc-send:active { background: var(--orange-light); transform: scale(0.95); }
+
+/* Quick action grid */
+.section-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--muted);
+}
+.quick-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+.quick-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 13px; padding: 14px 14px 12px;
+  cursor: pointer; transition: all .14s; -webkit-user-select: none;
+}
+.quick-card:active { background: var(--orange-bg); border-color: var(--orange-border); transform: scale(0.97); }
+.qc-label { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.3; }
+.qc-sub { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+
+/* Alert card */
+.alert-card {
+  background: var(--red-bg); border: 1px solid var(--red-border);
+  border-left: 3px solid var(--red); border-radius: 13px; padding: 14px 16px;
+  cursor: pointer; transition: all .12s;
+}
+.alert-card:active { background: rgba(185,28,28,0.14); }
+.ac-label { font-size: 11px; font-weight: 700; color: var(--red); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 4px; }
+.ac-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.ac-sub { font-size: 12.5px; color: var(--text2); }
+
+/* Today card */
+.today-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 13px;
+}
+.tc-header {
+  padding: 14px 16px 10px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.tc-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.tc-see-all { font-size: 12.5px; color: var(--orange); cursor: pointer; }
+.tc-event {
+  padding: 11px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-start; gap: 12px;
+}
+.tc-event:last-child { border: none; }
+.tc-time { font-size: 11px; color: var(--orange); font-weight: 600; min-width: 52px; margin-top: 1px; }
+.tc-info { flex: 1; }
+.tc-name { font-size: 13.5px; font-weight: 500; color: var(--text); }
+.tc-detail { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.tc-pill {
+  font-size: 9.5px; padding: 2px 7px; border-radius: 8px;
+  font-weight: 600; white-space: nowrap; align-self: flex-start;
+  border: 1px solid;
+}
+.pill-svc { background: var(--red-bg); color: var(--red); border-color: var(--red-border); }
+.pill-past { background: var(--orange-bg); color: var(--orange); border-color: var(--orange-border); }
+.pill-mtg { background: var(--green-bg); color: var(--green); border-color: rgba(21,128,61,.2); }
+
+/* ── CHAT VIEW ── */
+.chat-view {
+  flex: 1; display: none; flex-direction: column; overflow: hidden;
+}
+.chat-view.active { display: flex; }
+
+.chat-header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 10px 16px; display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+.chat-back {
+  background: none; border: none; padding: 4px; cursor: pointer;
+  color: var(--orange); font-size: 22px; line-height: 1; flex-shrink: 0;
+}
+.chat-header-info { flex: 1; }
+.ch-name { font-size: 15px; font-weight: 700; color: var(--text); }
+.ch-status { font-size: 11.5px; color: var(--green); font-weight: 500; }
+
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 16px;
+  display: flex; flex-direction: column; gap: 14px;
+  scroll-behavior: smooth;
+}
+.chat-messages::-webkit-scrollbar { display: none; }
+
+/* Message bubbles */
+.msg { display: flex; gap: 8px; max-width: 100%; animation: fup .2s ease; }
+.msg.user { flex-direction: row-reverse; }
+@keyframes fup { from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)} }
+
+.m-av {
+  width: 28px; height: 28px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+}
+.m-av.john { background: var(--text); color: white; }
+.m-av.user { background: var(--border2); color: var(--text2); }
+
+.m-body { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.msg.user .m-body { align-items: flex-end; }
+.m-name { font-size: 10px; color: var(--muted); }
+
+.bubble {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 4px 14px 14px 14px;
+  padding: 11px 14px; font-size: 14.5px; line-height: 1.72;
+  color: var(--text); white-space: pre-wrap; word-wrap: break-word;
+  max-width: 85vw;
+}
+.msg.user .bubble {
+  background: var(--orange-bg); border-color: var(--orange-border);
+  border-radius: 14px 4px 14px 14px;
+}
+.bubble.emg {
+  background: var(--red-bg); border-color: var(--red-border);
+  border-left: 3px solid var(--red);
+}
+
+/* Speak btn */
+.speak-btn {
+  margin-top: 4px; padding: 3px 10px;
+  border: 1px solid var(--border2); border-radius: 20px;
+  background: transparent; font-family: inherit;
+  font-size: 11px; color: var(--muted); cursor: pointer;
+}
+.speak-btn:active { border-color: var(--orange); color: var(--orange); }
+.speak-btn.active { border-color: var(--orange); color: var(--orange); background: var(--orange-bg); }
+
+/* Typing */
+.t-row { display: flex; gap: 8px; }
+.t-bub {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 4px 14px 14px 14px; padding: 12px 14px;
+  display: flex; gap: 4px; align-items: center;
+}
+.td { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: td .9s ease infinite; }
+.td:nth-child(2){animation-delay:.15s}.td:nth-child(3){animation-delay:.3s}
+@keyframes td{0%,60%,100%{transform:translateY(0);opacity:.35}30%{transform:translateY(-4px);opacity:1}}
+
+/* Cursor */
+.tw-cursor {
+  display: inline-block; width: 2px; height: 1.1em;
+  background: var(--orange); margin-left: 1px; vertical-align: middle;
+  animation: blink .7s infinite;
+}
+
+/* Chat input */
+.chat-input-area {
+  background: var(--surface); border-top: 1px solid var(--border);
+  padding: 10px 12px 12px; flex-shrink: 0;
+}
+.ci-box {
+  display: flex; align-items: flex-end; gap: 8px;
+  background: var(--bg); border: 1.5px solid var(--border2);
+  border-radius: 14px; padding: 9px 10px 9px 14px;
+  transition: border-color .18s;
+}
+.ci-box:focus-within { border-color: var(--orange); }
+.ci-textarea {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--text); font-family: inherit; font-size: 15px;
+  line-height: 1.5; resize: none; min-height: 22px; max-height: 100px;
+}
+.ci-textarea::placeholder { color: var(--muted); }
+.ci-mic {
+  background: none; border: none; color: var(--muted);
+  padding: 5px; cursor: pointer; flex-shrink: 0; transition: color .12s;
+}
+.ci-mic:active,.ci-mic.on { color: var(--orange); }
+.ci-mic.on { animation: pulse 1s infinite; }
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.ci-send {
+  background: var(--orange); border: none; border-radius: 9px;
+  width: 34px; height: 34px; display: flex; align-items: center;
+  justify-content: center; cursor: pointer; transition: all .12s; flex-shrink: 0;
+}
+.ci-send:active { background: var(--orange-light); transform: scale(0.93); }
+
+/* Chat suggestion chips */
+.chat-chips {
+  display: flex; gap: 7px; overflow-x: auto; margin-bottom: 8px;
+  padding-bottom: 2px;
+}
+.chat-chips::-webkit-scrollbar { display: none; }
+.cc-chip {
+  padding: 6px 14px; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 20px;
+  font-size: 12.5px; color: var(--text2); white-space: nowrap;
+  cursor: pointer; font-family: inherit; flex-shrink: 0;
+  -webkit-user-select: none;
+}
+.cc-chip:active { border-color: var(--orange); color: var(--orange); background: var(--orange-bg); }
+
+/* ── BOTTOM TAB BAR ── */
+.tab-bar {
+  background: var(--surface); border-top: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 6px 0 2px;
+  flex-shrink: 0;
+}
+.tab-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 3px; padding: 5px 4px; cursor: pointer;
+  border: none; background: none; transition: all .12s;
+  -webkit-user-select: none;
+}
+.tab-item:active { opacity: 0.7; }
+.tab-icon {
+  width: 24px; height: 24px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; transition: all .15s;
+  background: transparent;
+}
+.tab-label { font-size: 10px; color: var(--muted); font-weight: 500; transition: color .15s; }
+.tab-item.active .tab-icon { background: var(--orange-bg); }
+.tab-item.active .tab-icon svg { stroke: var(--orange); }
+.tab-item.active .tab-label { color: var(--orange); font-weight: 700; }
+.tab-badge {
+  position: absolute; top: -3px; right: -3px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--red); border: 1.5px solid var(--surface);
+}
+.tab-icon-wrap { position: relative; }
+
+/* ── DRAWER / SHEETS ── */
+.sheet-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(28,25,20,0.4); backdrop-filter: blur(3px);
+  display: none; align-items: flex-end;
+}
+.sheet-overlay.open { display: flex; }
+
+.sheet {
+  background: var(--surface); width: 100%;
+  border-radius: 20px 20px 0 0;
+  max-height: 90vh; overflow-y: auto;
+  animation: slideUp .28s cubic-bezier(0.32,0.72,0,1);
+  padding-bottom: var(--sab);
+}
+@keyframes slideUp { from{transform:translateY(100%)}to{transform:translateY(0)} }
+.sheet-handle {
+  width: 36px; height: 4px; border-radius: 2px;
+  background: var(--border2); margin: 10px auto 0; display: block;
+}
+.sheet-title {
+  font-size: 17px; font-weight: 700; color: var(--text);
+  letter-spacing: -0.02em; padding: 14px 20px 4px;
+}
+.sheet-sub { font-size: 13px; color: var(--muted); padding: 0 20px 14px; }
+
+/* Sheet row */
+.sheet-row {
+  display: flex; align-items: center; gap: 13px;
+  padding: 14px 20px; border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: background .12s;
+}
+.sheet-row:last-child { border: none; }
+.sheet-row:active { background: var(--bg2); }
+.sr-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: var(--bg2); display: flex; align-items: center;
+  justify-content: center; font-size: 14px; font-weight: 700;
+  color: var(--text2); flex-shrink: 0;
+}
+.sr-info { flex: 1; }
+.sr-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.sr-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.sr-arr { color: var(--muted); font-size: 18px; }
+
+/* ── MEMBERS LIST view ── */
+.panel-view {
+  flex: 1; overflow-y: auto; display: none;
+  flex-direction: column; padding: 16px;
+  gap: 10px;
+}
+.panel-view.active { display: flex; }
+.panel-view::-webkit-scrollbar { display: none; }
+
+.search-bar {
+  background: var(--bg); border: 1.5px solid var(--border2);
+  border-radius: 11px; padding: 10px 14px;
+  display: flex; align-items: center; gap: 9px;
+}
+.search-bar svg { flex-shrink: 0; color: var(--muted); }
+.search-input {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--text); font-family: inherit; font-size: 15px;
+}
+.search-input::placeholder { color: var(--muted); }
+
+.member-row {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 13px 15px;
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer; -webkit-user-select: none;
+}
+.member-row:active { background: var(--bg2); }
+.mr-av {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: var(--text2); color: white; display: flex;
+  align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; flex-shrink: 0;
+}
+.mr-info { flex: 1; min-width: 0; }
+.mr-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.mr-detail { font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mr-status { font-size: 10px; padding: 2px 8px; border-radius: 8px; font-weight: 700; border: 1px solid; }
+.st-active { background: var(--green-bg); color: var(--green); border-color: rgba(21,128,61,.2); }
+.st-new { background: var(--orange-bg); color: var(--orange); border-color: var(--orange-border); }
+.st-visitor { background: rgba(37,99,235,.07); color:#1d4ed8; border-color:rgba(37,99,235,.18); }
+.st-inactive { background: var(--bg2); color: var(--muted); border-color: var(--border2); }
+
+/* ── PRAYER LIST view ── */
+.pr-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 13px; padding: 14px 16px; cursor: pointer;
+}
+.pr-card:active { background: var(--bg2); }
+.pr-card.emg {
+  background: var(--red-bg); border-color: var(--red-border);
+  border-left: 3px solid var(--red);
+}
+.pr-top { display: flex; align-items: center; gap: 9px; margin-bottom: 6px; }
+.pr-name { font-size: 14px; font-weight: 700; color: var(--text); flex: 1; }
+.pr-cat { font-size: 10px; padding: 2px 8px; border-radius: 8px; font-weight: 700; border: 1px solid; }
+.c-emg { background: var(--red-bg); color: var(--red); border-color: var(--red-border); }
+.c-hlth { background: rgba(37,99,235,.07); color: #1d4ed8; border-color: rgba(37,99,235,.18); }
+.c-fam { background: rgba(124,58,237,.07); color: #6d28d9; border-color: rgba(124,58,237,.18); }
+.c-fin { background: var(--orange-bg); color: var(--orange); border-color: var(--orange-border); }
+.c-grief { background: var(--green-bg); color: var(--green); border-color: rgba(21,128,61,.2); }
+.c-gen { background: var(--bg2); color: var(--muted); border-color: var(--border2); }
+.pr-req { font-size: 13.5px; color: var(--text2); line-height: 1.6; }
+.pr-sub { font-size: 11px; color: var(--muted); margin-top: 7px; }
+.pr-actions { display: flex; gap: 7px; margin-top: 11px; flex-wrap: wrap; }
+.pr-btn {
+  padding: 7px 13px; border-radius: 8px;
+  border: 1px solid var(--border2); background: var(--surface);
+  font-family: inherit; font-size: 12.5px; color: var(--text2); cursor: pointer;
+}
+.pr-btn:active { border-color: var(--orange); color: var(--orange); }
+.pr-btn.red { border-color: var(--red-border); color: var(--red); }
+.pr-btn.red:active { background: var(--red-bg); }
+
+/* ── NOTIFICATIONS view ── */
+.notif-row {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 13px 15px;
+  display: flex; gap: 12px;
+}
+.notif-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); flex-shrink: 0; margin-top: 5px; }
+.notif-dot.read { background: transparent; border: 1px solid var(--border2); }
+.notif-content { flex: 1; }
+.notif-title { font-size: 13.5px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.notif-body { font-size: 12.5px; color: var(--text2); line-height: 1.5; }
+.notif-time { font-size: 11px; color: var(--muted); margin-top: 5px; }
+
+/* ── INSTALL BANNER ── */
+.install-banner {
+  position: fixed; bottom: calc(60px + var(--sab)); left: 12px; right: 12px;
+  z-index: 300; background: var(--text); border-radius: 14px;
+  padding: 14px 16px; display: none; align-items: center; gap: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25); animation: slideUp .3s ease;
+}
+.install-banner.show { display: flex; }
+.ib-info { flex: 1; }
+.ib-title { font-size: 13.5px; font-weight: 700; color: white; }
+.ib-sub { font-size: 12px; color: rgba(255,255,255,0.65); margin-top: 2px; }
+.ib-btn {
+  padding: 8px 16px; background: var(--orange); border: none;
+  border-radius: 9px; color: white; font-family: inherit;
+  font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap;
+}
+.ib-close { background: none; border: none; color: rgba(255,255,255,0.5); font-size: 18px; cursor: pointer; padding: 0; flex-shrink: 0; }
+
+/* ── AUTH (mobile) ── */
+.auth-screen {
+  position: fixed; inset: 0; z-index: 1000;
+  background: var(--bg); display: flex; flex-direction: column;
+  align-items: center; justify-content: center; padding: 24px;
+}
+.auth-logo { display: flex; align-items: center; gap: 9px; margin-bottom: 32px; justify-content: center; }
+.auth-logo svg { width: 22px; height: 22px; }
+.auth-logo-name { font-size: 24px; font-weight: 700; color: var(--text); letter-spacing: -0.03em; }
+.auth-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 380px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+}
+.auth-label { font-size: 11.5px; font-weight: 600; color: var(--text2); margin-bottom: 5px; display: block; }
+.auth-input {
+  width: 100%; padding: 13px 14px; background: var(--bg);
+  border: 1.5px solid var(--border2); border-radius: 11px;
+  font-family: inherit; font-size: 16px; color: var(--text);
+  outline: none; transition: border-color .18s; margin-bottom: 12px;
+}
+.auth-input:focus { border-color: var(--orange); }
+.auth-input::placeholder { color: var(--muted); }
+.auth-btn {
+  width: 100%; padding: 14px; border: none; border-radius: 12px;
+  background: var(--orange); color: white; font-family: inherit;
+  font-size: 16px; font-weight: 700; cursor: pointer; transition: all .14s; margin-top: 4px;
+}
+.auth-btn:active { background: var(--orange-light); transform: scale(0.98); }
+.auth-users { display: flex; flex-direction: column; gap: 9px; margin-bottom: 16px; }
+.auth-user-btn {
+  display: flex; align-items: center; gap: 12px; padding: 13px 14px;
+  background: var(--bg); border: 1.5px solid var(--border2);
+  border-radius: 12px; cursor: pointer; width: 100%; font-family: inherit;
+  transition: all .12s;
+}
+.auth-user-btn:active { border-color: var(--orange); background: var(--orange-bg); }
+.aub-av {
+  width: 36px; height: 36px; border-radius: 9px;
+  background: var(--text); color: white; display: flex;
+  align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
+.aub-name { font-size: 14px; font-weight: 600; color: var(--text); text-align: left; }
+.aub-role { font-size: 12px; color: var(--muted); text-align: left; }
+.auth-divider {
+  text-align: center; font-size: 12px; color: var(--muted); margin: 12px 0; position: relative;
+}
+.auth-divider::before { content:''; position:absolute; left:0; right:0; top:50%; height:1px; background:var(--border); }
+.auth-divider span { background: var(--surface); padding: 0 10px; position: relative; }
+.auth-error { background: var(--red-bg); border: 1px solid var(--red-border); border-radius: 8px; padding: 9px 13px; font-size: 13px; color: var(--red); margin-bottom: 12px; display: none; }
+
+/* ── Misc ── */
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.see-all { font-size: 13px; color: var(--orange); cursor: pointer; }
+</style>
+</head>
+<body>
+
+<!-- ══ AUTH ══ -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-logo">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#c2410c"/></svg>
+    <div class="auth-logo-name">John</div>
+  </div>
+  <div class="auth-card">
+    <div id="auth-error" class="auth-error"></div>
+    <div class="auth-users" id="auth-user-list"></div>
+    <div class="auth-divider" id="auth-divider" style="display:none"><span>or sign in manually</span></div>
+    <div id="auth-form" style="display:none">
+      <label class="auth-label">Select account</label>
+      <select class="auth-input" id="auth-select" style="margin-bottom:12px"></select>
+      <label class="auth-label">PIN</label>
+      <input class="auth-input" id="auth-pin" type="password" maxlength="4" placeholder="4-digit PIN" inputmode="numeric" />
+      <button class="auth-btn" onclick="doLogin()">Sign In</button>
+    </div>
+    <div id="auth-first" style="display:none">
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px">Welcome to John</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:18px">Your pastoral assistant. Let's get you set up.</div>
+      <label class="auth-label">Your name</label>
+      <input class="auth-input" id="af-name" placeholder="e.g. James Carter" />
+      <label class="auth-label">Title</label>
+      <select class="auth-input" id="af-title" style="margin-bottom:12px">
+        <option>Pastor</option><option>Bishop</option><option>Reverend</option><option>Dr.</option><option>Elder</option>
+      </select>
+      <label class="auth-label">Create a 4-digit PIN</label>
+      <input class="auth-input" id="af-pin" type="password" maxlength="4" placeholder="••••" inputmode="numeric" />
+      <button class="auth-btn" onclick="doFirstSignup()">Get Started</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP SHELL ══ -->
+<div class="app" id="appShell" style="display:none">
+
+  <!-- Top nav -->
+  <div class="nav-bar">
+    <div class="nav-title">
+      <div class="nav-heart">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#c2410c"/></svg>
+      </div>
+      <div class="nav-name">John</div>
+    </div>
+    <div class="nav-right">
+      <button class="nav-icon-btn" onclick="openSheet('more')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="nav-av" id="navAv" onclick="openSheet('profile')">?</div>
+      <div class="emg-dot" id="emgDot"></div>
+    </div>
+  </div>
+
+  <!-- Content area -->
+  <div class="content" id="mainContent">
+
+    <!-- HOME -->
+    <div class="home-view" id="view-home">
+
+      <div class="greeting-card">
+        <div class="gc-greeting" id="gc-greeting">Good morning, Pastor.</div>
+        <div class="gc-date" id="gc-date"></div>
+        <div class="gc-input-wrap">
+          <textarea class="gc-textarea" id="heroInput" placeholder="Ask John anything…" rows="1"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();heroSend()}"
+            oninput="autoR(this)"></textarea>
+          <button class="gc-send" onclick="heroSend()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Emergency card -->
+      <div class="alert-card" id="emg-card" onclick="switchTab('prayer')">
+        <div class="ac-label">2 Emergency Requests</div>
+        <div class="ac-title">Martinez · Holloway</div>
+        <div class="ac-sub">Tap to review and prepare a pastoral response</div>
+      </div>
+
+      <!-- Quick actions -->
+      <div>
+        <div class="section-label" style="margin-bottom:10px">Quick Actions</div>
+        <div class="quick-grid">
+          <div class="quick-card" onclick="openChat('Plan this Sunday\'s service — opening prayer, message theme, altar call')">
+            <div class="qc-label">Sunday Service</div>
+            <div class="qc-sub">Plan the full service</div>
+          </div>
+          <div class="quick-card" onclick="openChat('Help me prep a sermon. Topic: ')">
+            <div class="qc-label">Sermon Prep</div>
+            <div class="qc-sub">Outline & illustrations</div>
+          </div>
+          <div class="quick-card" onclick="openChat('I have a newcomer to follow up with: ')">
+            <div class="qc-label">Newcomer</div>
+            <div class="qc-sub">Follow-up message</div>
+          </div>
+          <div class="quick-card" onclick="openChat('Write a daily staff encouragement message')">
+            <div class="qc-label">Staff Word</div>
+            <div class="qc-sub">Morning encouragement</div>
+          </div>
+          <div class="quick-card" onclick="openChat('I need to book travel for ministry — help me plan a trip')">
+            <div class="qc-label">Book Travel</div>
+            <div class="qc-sub">Flights, hotel, car</div>
+          </div>
+          <div class="quick-card" onclick="openChat('Explain AG doctrine on: ')">
+            <div class="qc-label">AG Doctrine</div>
+            <div class="qc-sub">Theology deep dive</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Today's schedule -->
+      <div>
+        <div class="section-header" style="margin-bottom:10px">
+          <div class="section-label">Today</div>
+          <div class="see-all" onclick="openSheet('agenda')">See all</div>
+        </div>
+        <div class="today-card">
+          <div class="tc-event"><div class="tc-time">9:30 AM</div><div class="tc-info"><div class="tc-name">Sermon Prep Block</div><div class="tc-detail">Sunday message research</div></div><span class="tc-pill pill-svc">Service</span></div>
+          <div class="tc-event"><div class="tc-time">11:00 AM</div><div class="tc-info"><div class="tc-name">Hospital Visit — Martinez</div><div class="tc-detail">URGENT — ICU, Regional Medical</div></div><span class="tc-pill pill-past">Pastoral</span></div>
+          <div class="tc-event"><div class="tc-time">2:30 PM</div><div class="tc-info"><div class="tc-name">Newcomer Calls</div><div class="tc-detail">3 guests from Sunday</div></div><span class="tc-pill pill-mtg">Follow-up</span></div>
+          <div class="tc-event"><div class="tc-time">7:00 PM</div><div class="tc-info"><div class="tc-name">Midweek Prayer Service</div><div class="tc-detail">Full service</div></div><span class="tc-pill pill-svc">Service</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="chat-view" id="view-chat">
+      <div class="chat-header">
+        <button class="chat-back" onclick="closeChat()">‹</button>
+        <div class="chat-header-info">
+          <div class="ch-name">Dr. John</div>
+          <div class="ch-status">Online · Ph.D. Theology</div>
+        </div>
+        <button class="nav-icon-btn" onclick="openSheet('chatMenu')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+        </button>
+      </div>
+
+      <div class="chat-messages" id="chatMessages"></div>
+
+      <div class="chat-input-area">
+        <div class="chat-chips">
+          <button class="cc-chip" onclick="chipSend('Plan Sunday service')">Sunday Service</button>
+          <button class="cc-chip" onclick="chipSend('Newcomer follow-up')">Newcomer</button>
+          <button class="cc-chip" onclick="chipSend('AG doctrine question')">AG Doctrine</button>
+          <button class="cc-chip" onclick="chipSend('Funeral message')">Funeral</button>
+          <button class="cc-chip" onclick="chipSend('Book travel for ministry')">Travel</button>
+          <button class="cc-chip" onclick="chipSend('Daily staff encouragement')">Encouragement</button>
+        </div>
+        <div class="ci-box">
+          <button class="ci-mic" id="micBtn" onclick="toggleMic()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </button>
+          <textarea class="ci-textarea" id="chatInput" placeholder="Message John…" rows="1"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSend()}"
+            oninput="autoR(this)"></textarea>
+          <button class="ci-send" onclick="chatSend()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MEMBERS -->
+    <div class="panel-view" id="view-members">
+      <div class="search-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-input" placeholder="Search members…" oninput="mSearch(this.value)" />
+      </div>
+      <div id="member-list"></div>
+    </div>
+
+    <!-- PRAYER -->
+    <div class="panel-view" id="view-prayer">
+      <div style="font-size:17px;font-weight:700;color:var(--text);letter-spacing:-.02em;margin-bottom:4px">Prayer Requests</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Tuesday Report · 2 Emergency Flags</div>
+
+      <div class="pr-card emg" onclick="openChat('Help me prepare for a hospital crisis visit with Sister Gloria Martinez whose husband had a stroke')">
+        <div class="pr-top"><div class="pr-name">Gloria Martinez</div><span class="pr-cat c-emg">Emergency</span></div>
+        <div class="pr-req">Husband rushed to ICU following a stroke. Alone at Regional Medical Center. Children flying in.</div>
+        <div class="pr-sub">Today, 6:14 AM</div>
+        <div class="pr-actions">
+          <button class="pr-btn red" onclick="event.stopPropagation();openChat('Help me prepare for a hospital crisis visit with Gloria Martinez')">Prepare Visit</button>
+          <button class="pr-btn" onclick="event.stopPropagation();openChat('Draft an emergency prayer chain for Gloria Martinez\'s husband who had a stroke')">Prayer Chain</button>
+        </div>
+      </div>
+
+      <div class="pr-card emg" onclick="openChat('Help me prepare for a pastoral visit with the Holloway family — their son was in a car accident')">
+        <div class="pr-top"><div class="pr-name">James Holloway Jr.</div><span class="pr-cat c-emg">Emergency</span></div>
+        <div class="pr-req">Age 19, serious car accident Saturday night. Stable but critical. Parents requesting pastoral support.</div>
+        <div class="pr-sub">Sunday, 11:45 PM</div>
+        <div class="pr-actions">
+          <button class="pr-btn red" onclick="event.stopPropagation();openChat('Help me prepare for a pastoral hospital visit with the Holloway family')">Prepare Visit</button>
+          <button class="pr-btn" onclick="event.stopPropagation();openChat('Draft a compassionate message to the Holloway family during this crisis')">Message Family</button>
+        </div>
+      </div>
+
+      <div class="pr-card"><div class="pr-top"><div class="pr-name">Deacon Raymond Foster</div><span class="pr-cat c-hlth">Health</span></div><div class="pr-req">Knee replacement surgery Thursday. Requesting prayer for successful procedure and recovery.</div><div class="pr-sub">Sunday, 12:30 PM</div></div>
+      <div class="pr-card"><div class="pr-top"><div class="pr-name">The Henderson Family</div><span class="pr-cat c-fam">Family</span></div><div class="pr-req">Difficult season in marriage. Requesting prayer and would welcome a pastoral conversation.</div><div class="pr-sub">Sunday, 10:15 AM</div></div>
+      <div class="pr-card"><div class="pr-top"><div class="pr-name">Sister Yvonne Chambers</div><span class="pr-cat c-grief">Grief</span></div><div class="pr-req">Mother passed last Tuesday. Doing okay but appreciates prayer and ongoing support.</div><div class="pr-sub">Sunday, 2:00 PM</div></div>
+      <div class="pr-card"><div class="pr-top"><div class="pr-name">Brother Tony Reeves</div><span class="pr-cat c-fin">Financial</span></div><div class="pr-req">Laid off after 11 years. Trusting God. Requesting prayer for provision and new doors.</div><div class="pr-sub">Sunday, 9:55 AM</div></div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="panel-view" id="view-notifications">
+      <div style="font-size:17px;font-weight:700;color:var(--text);letter-spacing:-.02em;margin-bottom:14px">Notifications</div>
+      <div class="notif-row"><div class="notif-dot"></div><div class="notif-content"><div class="notif-title">Emergency: Gloria Martinez</div><div class="notif-body">Husband rushed to ICU — stroke. Immediate pastoral visit requested.</div><div class="notif-time">Today, 6:14 AM</div></div></div>
+      <div class="notif-row" style="margin-top:8px"><div class="notif-dot"></div><div class="notif-content"><div class="notif-title">7 salvations this Sunday</div><div class="notif-body">Sunday report ready. 247 total attendance. John has drafted follow-up messages.</div><div class="notif-time">Today, 12:30 PM</div></div></div>
+      <div class="notif-row" style="margin-top:8px"><div class="notif-dot"></div><div class="notif-content"><div class="notif-title">Staff encouragement sent</div><div class="notif-body">John delivered this morning's word to all 12 staff members at 6:30 AM.</div><div class="notif-time">Today, 6:30 AM</div></div></div>
+      <div class="notif-row" style="margin-top:8px"><div class="notif-dot read"></div><div class="notif-content"><div class="notif-title">Tuesday prayer report</div><div class="notif-body">7 prayer requests logged. 2 flagged as emergency. Report ready for review.</div><div class="notif-time">Yesterday, 7:00 AM</div></div></div>
+      <div class="notif-row" style="margin-top:8px"><div class="notif-dot read"></div><div class="notif-content"><div class="notif-title">Flight confirmed — Atlanta</div><div class="notif-body">Delta nonstop $187 · Departs May 24 7:45 AM · Marriott booked.</div><div class="notif-time">Yesterday, 11:05 AM</div></div></div>
+    </div>
+
+  </div>
+
+  <!-- Bottom tab bar -->
+  <div class="tab-bar">
+    <button class="tab-item active" id="tab-home" onclick="switchTab('home')">
+      <div class="tab-icon-wrap">
+        <div class="tab-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+      </div>
+      <div class="tab-label">Home</div>
+    </button>
+    <button class="tab-item" id="tab-members" onclick="switchTab('members')">
+      <div class="tab-icon-wrap">
+        <div class="tab-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+      </div>
+      <div class="tab-label">Members</div>
+    </button>
+    <button class="tab-item" id="tab-chat" onclick="openChat('')">
+      <div class="tab-icon-wrap">
+        <div class="tab-icon" style="background:var(--orange);width:48px;height:48px;border-radius:16px;margin-top:-16px;box-shadow:0 4px 16px rgba(194,65,12,0.35)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </div>
+      </div>
+      <div class="tab-label" style="margin-top:6px">Ask John</div>
+    </button>
+    <button class="tab-item" id="tab-prayer" onclick="switchTab('prayer')">
+      <div class="tab-icon-wrap">
+        <div class="tab-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </div>
+        <div class="tab-badge"></div>
+      </div>
+      <div class="tab-label">Prayer</div>
+    </button>
+    <button class="tab-item" id="tab-notifications" onclick="switchTab('notifications')">
+      <div class="tab-icon-wrap">
+        <div class="tab-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <div class="tab-badge"></div>
+      </div>
+      <div class="tab-label">Alerts</div>
+    </button>
+  </div>
+
+</div>
+
+<!-- ── SHEETS ── -->
+<div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()">
+
+  <!-- More menu sheet -->
+  <div class="sheet" id="sheet-more" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">More</div>
+    <div class="sheet-row" onclick="chipSend('Show me this Sunday\'s full plan');closeSheet()"><div class="sr-icon">S</div><div class="sr-info"><div class="sr-title">Sunday Report</div><div class="sr-sub">Weekly stats & salvations</div></div><div class="sr-arr">›</div></div>
+    <div class="sheet-row" onclick="chipSend('Build a staff scheduling calendar');closeSheet()"><div class="sr-icon">C</div><div class="sr-info"><div class="sr-title">Staff Calendar</div><div class="sr-sub">Schedules & assignments</div></div><div class="sr-arr">›</div></div>
+    <div class="sheet-row" onclick="chipSend('I need to book travel for ministry');closeSheet()"><div class="sr-icon">T</div><div class="sr-info"><div class="sr-title">Book Travel</div><div class="sr-sub">Flights, hotel, car rental</div></div><div class="sr-arr">›</div></div>
+    <div class="sheet-row" onclick="chipSend('Create a Word document for: ');closeSheet()"><div class="sr-icon">D</div><div class="sr-info"><div class="sr-title">Create Document</div><div class="sr-sub">Word, PDF, Excel, Google</div></div><div class="sr-arr">›</div></div>
+    <div class="sheet-row" onclick="window.open('john-billing.html');closeSheet()"><div class="sr-icon">B</div><div class="sr-info"><div class="sr-title">Billing & Plans</div><div class="sr-sub">Manage subscription</div></div><div class="sr-arr">›</div></div>
+  </div>
+
+  <!-- Agenda sheet -->
+  <div class="sheet" id="sheet-agenda" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Today's Agenda</div>
+    <div class="sheet-sub" id="agenda-sheet-date"></div>
+    <div class="sheet-row"><div class="sr-icon" style="font-size:11px;color:var(--orange)">6:30</div><div class="sr-info"><div class="sr-title">Personal Devotion</div><div class="sr-sub">Scripture, prayer, journaling</div></div></div>
+    <div class="sheet-row"><div class="sr-icon" style="font-size:11px;color:var(--orange)">8:00</div><div class="sr-info"><div class="sr-title">Staff Check-In</div><div class="sr-sub">Team sync, prayer</div></div></div>
+    <div class="sheet-row" style="background:var(--red-bg)"><div class="sr-icon" style="font-size:11px;color:var(--red)">11:00</div><div class="sr-info"><div class="sr-title" style="color:var(--red)">Hospital Visit — URGENT</div><div class="sr-sub">Gloria Martinez, ICU</div></div></div>
+    <div class="sheet-row"><div class="sr-icon" style="font-size:11px;color:var(--orange)">2:30</div><div class="sr-info"><div class="sr-title">Newcomer Follow-up</div><div class="sr-sub">3 calls from Sunday</div></div></div>
+    <div class="sheet-row"><div class="sr-icon" style="font-size:11px;color:var(--orange)">7:00</div><div class="sr-info"><div class="sr-title">Midweek Prayer Service</div><div class="sr-sub">Full service</div></div></div>
+  </div>
+
+  <!-- Profile sheet -->
+  <div class="sheet" id="sheet-profile" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="profile-sheet-name">Pastor</div>
+    <div class="sheet-sub" id="profile-sheet-role">Senior Pastor</div>
+    <div class="sheet-row" onclick="closeSheet()"><div class="sr-icon">P</div><div class="sr-info"><div class="sr-title">Edit Profile</div><div class="sr-sub">Name, title, church info</div></div><div class="sr-arr">›</div></div>
+    <div class="sheet-row" onclick="closeSheet()"><div class="sr-icon">T</div><div class="sr-info"><div class="sr-title">Team Access</div><div class="sr-sub">Manage staff accounts</div></div><div class="sr-arr">›</div></div>
+    <div class="sheet-row" onclick="window.open('john-billing.html');closeSheet()"><div class="sr-icon">B</div><div class="sr-info"><div class="sr-title">Billing</div><div class="sr-sub">Church Plan · Active</div></div><div class="sr-arr">›</div></div>
+    <div class="sheet-row" onclick="doLogout();closeSheet()" style="border-top:1px solid var(--border);margin-top:4px"><div class="sr-icon" style="color:var(--red)">→</div><div class="sr-info"><div class="sr-title" style="color:var(--red)">Sign Out</div></div></div>
+  </div>
+
+  <!-- Chat menu sheet -->
+  <div class="sheet" id="sheet-chatMenu" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Chat Options</div>
+    <div class="sheet-row" onclick="newSession();closeSheet()"><div class="sr-icon">+</div><div class="sr-info"><div class="sr-title">New Conversation</div><div class="sr-sub">Start fresh</div></div></div>
+    <div class="sheet-row" onclick="closeSheet()"><div class="sr-icon">H</div><div class="sr-info"><div class="sr-title">Conversation History</div><div class="sr-sub">Past sessions with John</div></div><div class="sr-arr">›</div></div>
+    <div class="sheet-row" onclick="toggleVoice();closeSheet()"><div class="sr-icon">V</div><div class="sr-info"><div class="sr-title" id="voice-toggle-label">Enable Voice</div><div class="sr-sub">John speaks responses aloud</div></div></div>
+  </div>
+
+</div>
+
+<!-- Install banner -->
+<div class="install-banner" id="installBanner">
+  <div class="ib-info">
+    <div class="ib-title">Add John to your home screen</div>
+    <div class="ib-sub">Tap Share, then "Add to Home Screen"</div>
+  </div>
+  <button class="ib-btn" onclick="triggerInstall()">Install</button>
+  <button class="ib-close" onclick="document.getElementById('installBanner').classList.remove('show')">×</button>
+</div>
+
+<script>
+// ── Init ──
+const NOW = new Date();
+const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function getGreeting() {
+  const h = NOW.getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
+// ── Auth ──
+const USERS_KEY = 'john_users';
+const SESSION_KEY = 'john_current_user';
+const ROLE_LABELS = { senior:'Senior Pastor', associate:'Associate Pastor', youth:'Youth Pastor', worship:'Worship Leader', admin:'Administrator' };
+let currentUser = null;
+let voiceOn = false;
+
+function usersLoad() { try { return JSON.parse(localStorage.getItem(USERS_KEY) || '[]'); } catch { return []; } }
+function usersSave(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
+
+function initAuth() {
+  const users = usersLoad();
+  const savedId = localStorage.getItem(SESSION_KEY);
+  const saved = savedId ? users.find(u => u.id === savedId) : null;
+  if (saved) { loginComplete(saved); return; }
+
+  if (!users.length) {
+    document.getElementById('auth-first').style.display = 'block';
+  } else {
+    const list = document.getElementById('auth-user-list');
+    list.innerHTML = users.map(u => `
+      <button class="auth-user-btn" onclick="quickPick('${u.id}')">
+        <div class="aub-av">${u.first[0]}${u.last[0]}</div>
+        <div><div class="aub-name">${u.title} ${u.first} ${u.last}</div><div class="aub-role">${ROLE_LABELS[u.role]||u.role}</div></div>
+      </button>
+    `).join('');
+
+    const sel = document.getElementById('auth-select');
+    sel.innerHTML = '<option value="">— Choose —</option>' + users.map(u => `<option value="${u.id}">${u.title} ${u.first} ${u.last}</option>`).join('');
+    document.getElementById('auth-divider').style.display = 'block';
+    document.getElementById('auth-form').style.display = 'block';
+  }
+}
+
+function quickPick(uid) {
+  document.getElementById('auth-select').value = uid;
+  document.getElementById('auth-pin').focus();
+}
+
+function doLogin() {
+  const uid = document.getElementById('auth-select').value;
+  const pin = document.getElementById('auth-pin').value.trim();
+  const err = document.getElementById('auth-error');
+  if (!uid) { err.textContent='Select an account.'; err.style.display='block'; return; }
+  if (!pin) { err.textContent='Enter your PIN.'; err.style.display='block'; return; }
+  const u = usersLoad().find(x => x.id === uid);
+  if (!u || u.pin !== pin) { err.textContent='Incorrect PIN.'; err.style.display='block'; return; }
+  loginComplete(u);
+}
+
+function doFirstSignup() {
+  const name = document.getElementById('af-name').value.trim();
+  const title = document.getElementById('af-title').value;
+  const pin = document.getElementById('af-pin').value.trim();
+  if (!name) { alert('Please enter your name.'); return; }
+  if (!pin || pin.length < 4) { alert('PIN must be 4 digits.'); return; }
+  const parts = name.split(' ');
+  const first = parts[0]; const last = parts.slice(1).join(' ') || '';
+  const u = { id: Date.now().toString(), first, last, title, role:'senior', pin, createdAt: new Date().toISOString() };
+  const users = usersLoad(); users.push(u); usersSave(users);
+  loginComplete(u);
+}
+
+function loginComplete(user) {
+  currentUser = user;
+  localStorage.setItem(SESSION_KEY, user.id);
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('appShell').style.display = 'flex';
+
+  // Set greeting
+  const church = JSON.parse(localStorage.getItem('john_profile') || '{}');
+  document.getElementById('gc-greeting').textContent = `${getGreeting()}, ${user.title} ${user.first}.`;
+  document.getElementById('gc-date').textContent = `${DAYS[NOW.getDay()]}, ${MONTHS[NOW.getMonth()]} ${NOW.getDate()} · ${NOW.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}`;
+  document.getElementById('navAv').textContent = user.first[0] + (user.last[0] || '');
+  document.getElementById('profile-sheet-name').textContent = `${user.title} ${user.first} ${user.last}`;
+  document.getElementById('profile-sheet-role').textContent = ROLE_LABELS[user.role] || user.role;
+  document.getElementById('agenda-sheet-date').textContent = `${DAYS[NOW.getDay()]}, ${MONTHS[NOW.getMonth()]} ${NOW.getDate()}`;
+
+  // Build system prompt
+  buildSYSTEM(user);
+  renderMembers();
+  checkInstall();
+}
+
+function doLogout() {
+  localStorage.removeItem(SESSION_KEY);
+  currentUser = null;
+  document.getElementById('appShell').style.display = 'none';
+  document.getElementById('authScreen').style.display = 'flex';
+  initAuth();
+}
+
+// ── System prompt ──
+let SYSTEM = '';
+function buildSYSTEM(user) {
+  const p = JSON.parse(localStorage.getItem('john_profile') || '{}');
+  const members = loadMembers();
+  const memberBlock = members.length ? `\nMEMBER DATABASE:\n${members.map(m=>`- ${m.first} ${m.last} | ${m.status} | ${m.phone||'no phone'}${m.notes&&m.notes[0]?' | '+m.notes[0].text.substring(0,60):''}` ).join('\n')}\n` : '';
+
+  SYSTEM = `You are Dr. John — Ph.D. Systematic Theology, D.Min. Pastoral Leadership. You serve ${user.title} ${user.first} ${user.last||''} as their trusted pastoral assistant.
+${p.church ? `Church: ${p.church}${p.city?', '+p.city:''}` : ''}
+${p.denom ? `Denomination: ${p.denom}` : 'Denomination: Assemblies of God'}
+${memberBlock}
+VOICE: Warm, direct, human. Plain sentences. No filler. Think out loud when it helps. Pick up the pastor's vocabulary.
+
+AG DOCTRINE: Full 16 Fundamental Truths. Spirit Baptism with tongues (Acts 2:4). Divine Healing. Pre-trib premillennial. Water Baptism and Lord's Supper as ordinances. Full knowledge of all Christian traditions.
+
+CAPABILITIES: Sermon prep, all ceremonies (weddings, funerals, dedications, baptism, communion), newcomer follow-up, member care, staff calendars, project planning, board reports, daily encouragement, prayer triage (emergency first), document creation ([DOCUMENT TYPE: X]), travel booking (always confirm destination/dates/budget/preferences first).
+
+RESPONSE STYLE: Lead with what helps most. Full drafts on writing tasks. Real plans on planning tasks. One question if needed. Talk like a person.
+
+TODAY: ${DAYS[NOW.getDay()]}, ${MONTHS[NOW.getMonth()]} ${NOW.getDate()}, ${NOW.getFullYear()}`;
+}
+
+// ── Members ──
+function loadMembers() {
+  try { return JSON.parse(localStorage.getItem('john_members') || '[]'); } catch { return []; }
+}
+const ST_CLASS = { active:'st-active', new:'st-new', visitor:'st-visitor', inactive:'st-inactive' };
+const ST_LABEL = { active:'Active', new:'New', visitor:'Visitor', inactive:'Inactive' };
+
+function renderMembers(filter) {
+  let members = loadMembers();
+  if (filter) { const q = filter.toLowerCase(); members = members.filter(m => `${m.first} ${m.last}`.toLowerCase().includes(q) || (m.phone||'').includes(q)); }
+  const list = document.getElementById('member-list');
+  if (!members.length) { list.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:14px;padding:32px">No members found</div>'; return; }
+  list.innerHTML = members.map(m => `
+    <div class="member-row" style="margin-bottom:9px" onclick="openChat('Tell me about ${m.first} ${m.last} and how I should follow up with them. Status: ${ST_LABEL[m.status]}.')">
+      <div class="mr-av">${m.first[0]}${m.last[0]}</div>
+      <div class="mr-info">
+        <div class="mr-name">${m.first} ${m.last}</div>
+        <div class="mr-detail">${m.phone||m.email||m.address||'—'}</div>
+      </div>
+      <span class="mr-status ${ST_CLASS[m.status]||'st-inactive'}">${ST_LABEL[m.status]||'—'}</span>
+    </div>
+  `).join('');
+}
+function mSearch(q) { renderMembers(q); }
+
+// ── Tab switching ──
+let activeTab = 'home';
+function switchTab(tab) {
+  if (tab === 'chat') { openChat(''); return; }
+  document.querySelectorAll('.panel-view,.home-view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-' + tab).classList.add('active');
+  document.getElementById('tab-' + tab)?.classList.add('active');
+  activeTab = tab;
+}
+
+// ── Chat ──
+let chatHistory = [];
+let sessionId = null;
+let recognition = null;
+let listening = false;
+
+function openChat(prompt) {
+  // Show chat view
+  document.querySelectorAll('.panel-view,.home-view').forEach(v => v.classList.remove('active'));
+  const chatView = document.getElementById('view-chat');
+  chatView.classList.add('active');
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-chat')?.classList.add('active');
+
+  if (prompt) {
+    const inp = document.getElementById('chatInput');
+    inp.value = prompt;
+    autoR(inp);
+    inp.focus();
+    setTimeout(() => chatSend(), 100);
+  } else {
+    document.getElementById('chatInput').focus();
+  }
+}
+
+function closeChat() {
+  document.getElementById('view-chat').classList.remove('active');
+  switchTab('home');
+}
+
+function heroSend() {
+  const inp = document.getElementById('heroInput');
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = ''; inp.style.height = 'auto';
+  openChat('');
+  setTimeout(() => sendMsg(text), 150);
+}
+
+function chatSend() {
+  const inp = document.getElementById('chatInput');
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = ''; inp.style.height = 'auto';
+  sendMsg(text);
+}
+
+function chipSend(t) { openChat(t); }
+function newSession() { chatHistory = []; sessionId = null; document.getElementById('chatMessages').innerHTML = ''; }
+
+function autoR(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 100) + 'px'; }
+
+// ── Voice ──
+function getVoice() {
+  const vv = window.speechSynthesis.getVoices();
+  return vv.find(v=>['Daniel','Google UK English Male','David','James','Alex'].some(n=>v.name.includes(n)))||vv.find(v=>v.lang.startsWith('en'))||vv[0];
+}
+function speak(text) {
+  if (!voiceOn) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text.replace(/[^\w\s.,?!;:'"\-()]/g,''));
+  const v = getVoice(); if(v) u.voice=v;
+  u.rate=0.93; u.pitch=0.87; window.speechSynthesis.speak(u);
+}
+window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+
+function toggleVoice() {
+  voiceOn = !voiceOn;
+  document.getElementById('voice-toggle-label').textContent = voiceOn ? 'Disable Voice' : 'Enable Voice';
+}
+
+function toggleMic() {
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) { alert('Use Chrome or Safari for voice input.'); return; }
+  const btn = document.getElementById('micBtn');
+  if (listening) { recognition.stop(); listening = false; btn.classList.remove('on'); return; }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR(); recognition.lang = 'en-US'; recognition.continuous = false; recognition.interimResults = false;
+  recognition.onresult = e => {
+    const t = e.results[0][0].transcript;
+    document.getElementById('chatInput').value = t;
+    autoR(document.getElementById('chatInput'));
+    listening = false; btn.classList.remove('on');
+    chatSend();
+  };
+  recognition.onerror = () => { listening = false; btn.classList.remove('on'); };
+  recognition.start(); listening = true; btn.classList.add('on');
+}
+
+// ── Message rendering ──
+function addMsg(role, text) {
+  const c = document.getElementById('chatMessages');
+  const isJ = role === 'john';
+  const row = document.createElement('div'); row.className = `msg${isJ?'':' user'}`;
+  const av = document.createElement('div'); av.className = `m-av ${isJ?'john':'user'}`; av.textContent = isJ?'J':'P';
+  const body = document.createElement('div'); body.className = 'm-body';
+  const nm = document.createElement('div'); nm.className = 'm-name'; nm.textContent = isJ?'Dr. John':'Pastor';
+  const bub = document.createElement('div');
+  const isEmg = isJ && text.toLowerCase().includes('emergency');
+  bub.className = isEmg ? 'bubble emg' : 'bubble';
+  bub.textContent = text;
+  if (isJ) {
+    const spk = document.createElement('button'); spk.className = 'speak-btn'; spk.textContent = 'Speak';
+    spk.onclick = () => {
+      if (spk.classList.contains('active')) { window.speechSynthesis.cancel(); spk.classList.remove('active'); spk.textContent = 'Speak'; return; }
+      spk.classList.add('active'); spk.textContent = 'Stop';
+      const u = new SpeechSynthesisUtterance(text.replace(/[^\w\s.,?!;:'"\-()]/g,''));
+      const v = getVoice(); if(v) u.voice=v; u.rate=0.93; u.pitch=0.87;
+      u.onend = () => { spk.classList.remove('active'); spk.textContent = 'Speak'; };
+      window.speechSynthesis.speak(u);
+    };
+    body.appendChild(nm); body.appendChild(bub); body.appendChild(spk);
+  } else { body.appendChild(nm); body.appendChild(bub); }
+  row.appendChild(av); row.appendChild(body);
+  c.appendChild(row); c.scrollTop = c.scrollHeight;
+}
+
+function showTyping() {
+  const c = document.getElementById('chatMessages');
+  const row = document.createElement('div'); row.className = 't-row'; row.id = 'typing';
+  row.innerHTML = '<div class="m-av john">J</div><div class="t-bub"><div class="td"></div><div class="td"></div><div class="td"></div></div>';
+  c.appendChild(row); c.scrollTop = c.scrollHeight;
+}
+function hideTyping() { const e = document.getElementById('typing'); if(e) e.remove(); }
+
+// ── Stream send ──
+async function sendMsg(text) {
+  if (!text) return;
+  addMsg('user', text);
+  chatHistory.push({ role:'user', content:text });
+
+  // Save to localStorage session
+  if (!sessionId) sessionId = Date.now().toString();
+  saveSession();
+
+  showTyping();
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000, stream: true,
+        system: SYSTEM,
+        messages: chatHistory.slice(-40)
+      })
+    });
+
+    hideTyping();
+
+    // Create streaming bubble
+    const c = document.getElementById('chatMessages');
+    const row = document.createElement('div'); row.className = 'msg';
+    const av = document.createElement('div'); av.className = 'm-av john'; av.textContent = 'J';
+    const body = document.createElement('div'); body.className = 'm-body';
+    const nm = document.createElement('div'); nm.className = 'm-name'; nm.textContent = 'Dr. John';
+    const bub = document.createElement('div'); bub.className = 'bubble';
+    const cursor = document.createElement('span'); cursor.className = 'tw-cursor'; bub.appendChild(cursor);
+    const spk = document.createElement('button'); spk.className = 'speak-btn'; spk.textContent = 'Speak';
+    body.appendChild(nm); body.appendChild(bub); body.appendChild(spk);
+    row.appendChild(av); row.appendChild(body);
+    c.appendChild(row); c.scrollTop = c.scrollHeight;
+
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let full = ''; let buf = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split('\n'); buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const d = line.slice(6).trim();
+        if (d === '[DONE]') continue;
+        try {
+          const p = JSON.parse(d);
+          if (p.type === 'content_block_delta' && p.delta?.type === 'text_delta') {
+            full += p.delta.text;
+            bub.insertBefore(document.createTextNode(p.delta.text), cursor);
+            c.scrollTop = c.scrollHeight;
+          }
+        } catch {}
+      }
+    }
+
+    cursor.remove();
+    if (!full) full = "Something interrupted me. Try again, Pastor.";
+
+    spk.onclick = () => {
+      if (spk.classList.contains('active')) { window.speechSynthesis.cancel(); spk.classList.remove('active'); spk.textContent='Speak'; return; }
+      spk.classList.add('active'); spk.textContent='Stop';
+      const u = new SpeechSynthesisUtterance(full.replace(/[^\w\s.,?!;:'"\-()]/g,''));
+      const v = getVoice(); if(v) u.voice=v; u.rate=0.93; u.pitch=0.87;
+      u.onend=()=>{spk.classList.remove('active');spk.textContent='Speak'};
+      window.speechSynthesis.speak(u);
+    };
+
+    chatHistory.push({ role:'assistant', content:full });
+    saveSession();
+    if (voiceOn) speak(full);
+
+  } catch (err) {
+    hideTyping();
+    addMsg('john', "Something went sideways. Give it a moment and try again.");
+    console.error(err);
+  }
+}
+
+// ── Session persistence ──
+function saveSession() {
+  if (!sessionId) return;
+  const sessions = JSON.parse(localStorage.getItem('john_mobile_sessions') || '[]');
+  const existing = sessions.findIndex(s => s.id === sessionId);
+  const title = chatHistory.find(m=>m.role==='user')?.content?.substring(0,48)||'Session';
+  const session = { id:sessionId, title, updatedAt:new Date().toISOString(), messages:chatHistory };
+  if (existing >= 0) sessions[existing] = session;
+  else sessions.unshift(session);
+  if (sessions.length > 30) sessions.splice(30);
+  localStorage.setItem('john_mobile_sessions', JSON.stringify(sessions));
+}
+
+// ── Sheets ──
+let activeSheet = null;
+function openSheet(id) {
+  document.querySelectorAll('.sheet').forEach(s => s.style.display = 'none');
+  document.getElementById('sheet-' + id).style.display = 'block';
+  document.getElementById('sheet-overlay').classList.add('open');
+  activeSheet = id;
+}
+function closeSheet() {
+  document.getElementById('sheet-overlay').classList.remove('open');
+  activeSheet = null;
+}
+
+// ── PWA Install ──
+let deferredPrompt = null;
+function checkInstall() {
+  // Show install banner if not already installed and not dismissed
+  const dismissed = localStorage.getItem('john_install_dismissed');
+  if (dismissed) return;
+  const isInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if (isInstalled) return;
+  // Show after 3 seconds
+  setTimeout(() => {
+    document.getElementById('installBanner').classList.add('show');
+  }, 3000);
+}
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredPrompt = e;
+  document.getElementById('installBanner').classList.add('show');
+});
+
+function triggerInstall() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(result => {
+      deferredPrompt = null;
+      document.getElementById('installBanner').classList.remove('show');
+    });
+  } else {
+    // iOS instructions
+    alert('To install John:\n1. Tap the Share button below\n2. Select "Add to Home Screen"\n3. Tap "Add"');
+    localStorage.setItem('john_install_dismissed', '1');
+    document.getElementById('installBanner').classList.remove('show');
+  }
+}
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installBanner').classList.remove('show');
+});
+
+// ── Service Worker ──
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('john-sw.js').then(reg => {
+    console.log('John SW registered:', reg.scope);
+  }).catch(err => console.log('SW registration failed:', err));
+}
+
+// ── Push Notifications ──
+async function requestNotifications() {
+  if (!('Notification' in window)) return;
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    scheduleLocalNotifications();
+  }
+}
+
+function scheduleLocalNotifications() {
+  // In production: use Service Worker push API with your backend
+  // For now: demonstrate what notifications would fire
+  console.log('Notifications scheduled: 6:30 AM staff encouragement, Tuesday prayer report, emergency alerts');
+}
+
+// ── Boot ──
+initAuth();
+</script>
+</body>
+</html>

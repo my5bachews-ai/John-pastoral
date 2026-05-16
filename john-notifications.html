@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#fcfaf6">
+<title>John — Notifications</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #fcfaf6;
+  --bg2: #f5f2eb;
+  --surface: #ffffff;
+  --border: #e8e3d9;
+  --border2: #d9d3c7;
+  --text: #1c1917;
+  --text2: #57534e;
+  --muted: #a8a29e;
+  --orange: #c2410c;
+  --orange-light: #ea580c;
+  --orange-bg: rgba(194,65,12,0.07);
+  --orange-border: rgba(194,65,12,0.2);
+  --red: #b91c1c;
+  --red-bg: rgba(185,28,28,0.07);
+  --red-border: rgba(185,28,28,0.18);
+  --green: #15803d;
+  --green-bg: rgba(21,128,61,0.07);
+  --green-border: rgba(21,128,61,0.2);
+  --blue: #1d4ed8;
+  --blue-bg: rgba(29,78,216,0.07);
+  --blue-border: rgba(29,78,216,0.18);
+  --purple: #6d28d9;
+  --purple-bg: rgba(109,40,217,0.07);
+  --purple-border: rgba(109,40,217,0.18);
+  --r: 12px;
+}
+
+html, body {
+  min-height: 100%; background: var(--bg);
+  color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+}
+
+/* ── Layout ── */
+.shell { display: flex; min-height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  width: 240px; background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+  overflow-y: auto;
+}
+.sid-top {
+  padding: 20px 16px 14px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 9px;
+}
+.sid-logo svg { width: 18px; height: 18px; }
+.sid-name { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.03em; }
+.sid-tag { font-size: 10px; color: var(--muted); margin-left: auto; }
+
+.sid-nav { padding: 12px 10px; flex: 1; }
+.sid-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 0 8px; margin-bottom: 4px; margin-top: 14px; }
+.sid-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px; border-radius: 7px; cursor: pointer;
+  font-size: 13px; color: var(--text2); margin-bottom: 1px;
+  border: none; background: none; width: 100%; text-align: left;
+  font-family: inherit; transition: all .12s; border-left: 2px solid transparent;
+}
+.sid-item:hover { background: var(--bg2); color: var(--text); }
+.sid-item.active { background: var(--orange-bg); color: var(--orange); border-left-color: var(--orange); font-weight: 500; }
+.sid-count { font-size: 10px; background: var(--red); color: white; padding: 1px 6px; border-radius: 10px; font-weight: 700; }
+.sid-count.green { background: var(--green); }
+
+/* Main */
+.main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.topbar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 14px 28px; display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.tb-title { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+.tb-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.tb-actions { display: flex; gap: 8px; align-items: center; }
+.tb-btn {
+  padding: 8px 16px; border-radius: 8px; font-family: inherit;
+  font-size: 13px; font-weight: 500; cursor: pointer; transition: all .14s;
+}
+.tb-primary { background: var(--orange); border: none; color: white; }
+.tb-primary:hover { background: var(--orange-light); }
+.tb-ghost { background: transparent; border: 1px solid var(--border2); color: var(--text2); }
+.tb-ghost:hover { border-color: var(--orange); color: var(--orange); }
+
+.view-area { flex: 1; overflow-y: auto; padding: 24px 28px; }
+.view-area::-webkit-scrollbar { width: 4px; }
+.view-area::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+/* ── Panel system ── */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── Status cards ── */
+.status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 22px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; }
+.sc-num { font-size: 26px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+.sc-label { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 4px; }
+.sc-delta { font-size: 11.5px; font-weight: 500; margin-top: 6px; }
+.up { color: var(--green); } .dn { color: var(--red); }
+
+/* ── Notification feed ── */
+.notif-feed { display: flex; flex-direction: column; gap: 8px; }
+.notif-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 15px 17px;
+  display: flex; align-items: flex-start; gap: 14px;
+  transition: all .12s; cursor: pointer;
+}
+.notif-card:hover { border-color: var(--border2); box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+.notif-card.unread { border-left: 3px solid var(--orange); }
+.notif-card.emergency { border-left: 3px solid var(--red); background: var(--red-bg); border-color: var(--red-border); }
+
+.notif-type-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 4px;
+}
+.dot-emergency { background: var(--red); animation: pulse 1.5s infinite; }
+.dot-prayer { background: var(--purple); }
+.dot-encouragement { background: var(--orange); }
+.dot-report { background: var(--blue); }
+.dot-member { background: var(--green); }
+.dot-system { background: var(--muted); }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.2)} }
+
+.notif-body { flex: 1; }
+.nb-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 5px; }
+.nb-title { font-size: 13.5px; font-weight: 600; color: var(--text); }
+.nb-time { font-size: 11px; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+.nb-text { font-size: 13px; color: var(--text2); line-height: 1.6; }
+.nb-actions { display: flex; gap: 7px; margin-top: 10px; flex-wrap: wrap; }
+.nb-btn {
+  font-size: 12px; padding: 5px 12px; border-radius: 7px;
+  border: 1px solid var(--border2); background: var(--surface);
+  color: var(--text2); cursor: pointer; font-family: inherit; transition: all .12s;
+}
+.nb-btn:hover { border-color: var(--orange); color: var(--orange); }
+.nb-btn.red { border-color: var(--red-border); color: var(--red); }
+.nb-btn.red:hover { background: var(--red-bg); }
+.nb-meta { font-size: 11px; color: var(--muted); margin-top: 8px; }
+
+.type-badge {
+  font-size: 9.5px; padding: 2px 8px; border-radius: 10px;
+  font-weight: 700; border: 1px solid; display: inline-block; white-space: nowrap;
+}
+.badge-emergency { background: var(--red-bg); color: var(--red); border-color: var(--red-border); }
+.badge-prayer { background: var(--purple-bg); color: var(--purple); border-color: var(--purple-border); }
+.badge-encouragement { background: var(--orange-bg); color: var(--orange); border-color: var(--orange-border); }
+.badge-report { background: var(--blue-bg); color: var(--blue); border-color: var(--blue-border); }
+.badge-member { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
+.badge-system { background: var(--bg2); color: var(--muted); border-color: var(--border2); }
+
+/* ── Scheduler ── */
+.schedule-grid { display: flex; flex-direction: column; gap: 10px; }
+.schedule-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 18px 20px;
+  display: flex; align-items: center; gap: 16px;
+}
+.sch-icon {
+  width: 42px; height: 42px; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; flex-shrink: 0;
+}
+.sch-icon.orange { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+.sch-icon.red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.sch-icon.blue { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.sch-icon.green { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.sch-icon.purple { background: var(--purple-bg); color: var(--purple); border: 1px solid var(--purple-border); }
+
+.sch-info { flex: 1; }
+.sch-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.sch-desc { font-size: 12.5px; color: var(--text2); margin-top: 3px; }
+.sch-schedule { font-size: 11.5px; color: var(--orange); font-weight: 500; margin-top: 4px; }
+
+.sch-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.sch-last { font-size: 11px; color: var(--muted); text-align: right; }
+.toggle-wrap { display: flex; align-items: center; }
+.toggle {
+  width: 42px; height: 24px; border-radius: 12px;
+  border: none; cursor: pointer; transition: background .2s; position: relative;
+  background: var(--border2);
+}
+.toggle.on { background: var(--orange); }
+.toggle::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 18px; height: 18px; border-radius: 50%; background: white;
+  transition: transform .2s; box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+.toggle.on::after { transform: translateX(18px); }
+
+/* ── Templates ── */
+.template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+.template-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 18px; cursor: pointer; transition: all .14s;
+}
+.template-card:hover { border-color: var(--orange); box-shadow: 0 2px 16px rgba(0,0,0,0.06); }
+.tc-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.tc-icon {
+  width: 36px; height: 36px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; flex-shrink: 0;
+}
+.tc-name { font-size: 13.5px; font-weight: 600; color: var(--text); }
+.tc-trigger { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+.tc-preview {
+  font-size: 13px; color: var(--text2); line-height: 1.6;
+  font-style: italic; background: var(--bg2);
+  border-radius: 8px; padding: 10px 12px; margin-top: 8px;
+  border-left: 3px solid var(--border2);
+}
+.tc-actions { display: flex; gap: 7px; margin-top: 12px; }
+.tc-btn {
+  font-size: 12px; padding: 5px 12px; border-radius: 7px;
+  border: 1px solid var(--border2); background: transparent;
+  color: var(--text2); cursor: pointer; font-family: inherit; transition: all .12s;
+}
+.tc-btn:hover { border-color: var(--orange); color: var(--orange); }
+.tc-btn.primary { background: var(--orange); border-color: var(--orange); color: white; }
+.tc-btn.primary:hover { background: var(--orange-light); }
+
+/* ── Settings ── */
+.settings-section { margin-bottom: 24px; }
+.ss-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.setting-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+.setting-row:last-child { border: none; }
+.sr-info { }
+.sr-label { font-size: 13.5px; font-weight: 500; color: var(--text); }
+.sr-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.sr-control { display: flex; align-items: center; gap: 10px; }
+.sr-input {
+  padding: 7px 12px; background: var(--bg); border: 1.5px solid var(--border2);
+  border-radius: 8px; font-family: inherit; font-size: 13px; color: var(--text);
+  outline: none; width: 100px; transition: border-color .15s;
+}
+.sr-input:focus { border-color: var(--orange); }
+.sr-select {
+  padding: 7px 12px; background: var(--bg); border: 1.5px solid var(--border2);
+  border-radius: 8px; font-family: inherit; font-size: 13px; color: var(--text);
+  outline: none; cursor: pointer;
+}
+
+/* ── Compose ── */
+.compose-wrap { max-width: 660px; }
+.field-box { margin-bottom: 14px; }
+.field-label { font-size: 11.5px; font-weight: 600; color: var(--text2); margin-bottom: 5px; display: block; }
+.field-input {
+  width: 100%; padding: 11px 14px; background: var(--surface);
+  border: 1.5px solid var(--border2); border-radius: 9px;
+  font-family: inherit; font-size: 14px; color: var(--text); outline: none;
+  transition: border-color .18s;
+}
+.field-input:focus { border-color: var(--orange); }
+.field-select {
+  width: 100%; padding: 11px 14px; background: var(--surface);
+  border: 1.5px solid var(--border2); border-radius: 9px;
+  font-family: inherit; font-size: 14px; color: var(--text); outline: none;
+}
+.field-textarea {
+  width: 100%; padding: 11px 14px; background: var(--surface);
+  border: 1.5px solid var(--border2); border-radius: 9px;
+  font-family: inherit; font-size: 14px; color: var(--text); outline: none;
+  resize: none; line-height: 1.65; transition: border-color .18s;
+}
+.field-textarea:focus { border-color: var(--orange); }
+.recipient-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+.r-chip {
+  padding: 5px 13px; border: 1px solid var(--border2); border-radius: 20px;
+  font-size: 12.5px; color: var(--text2); cursor: pointer; font-family: inherit;
+  transition: all .12s; background: var(--bg);
+}
+.r-chip.selected { border-color: var(--orange); color: var(--orange); background: var(--orange-bg); }
+.send-preview {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 16px 18px; margin-top: 14px;
+  font-size: 14px; color: var(--text2); line-height: 1.7; font-style: italic;
+  white-space: pre-wrap; min-height: 80px;
+}
+.send-btn {
+  padding: 12px 28px; background: var(--orange); border: none;
+  border-radius: 9px; color: white; font-family: inherit;
+  font-size: 14px; font-weight: 700; cursor: pointer; transition: all .14s; margin-top: 14px;
+}
+.send-btn:hover { background: var(--orange-light); transform: translateY(-1px); }
+.send-btn:disabled { background: var(--border2); color: var(--muted); cursor: not-allowed; transform: none; }
+
+/* ── Permission banner ── */
+.permission-banner {
+  background: var(--orange-bg); border: 1px solid var(--orange-border);
+  border-radius: var(--r); padding: 14px 18px;
+  display: flex; align-items: center; gap: 14px; margin-bottom: 20px;
+}
+.pb-text { flex: 1; }
+.pb-title { font-size: 13.5px; font-weight: 700; color: var(--orange); margin-bottom: 3px; }
+.pb-sub { font-size: 12.5px; color: var(--text2); }
+.pb-btn {
+  padding: 8px 18px; background: var(--orange); border: none;
+  border-radius: 8px; color: white; font-family: inherit;
+  font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+
+/* ── Delivery log ── */
+.log-table { width: 100%; border-collapse: collapse; }
+.log-table th {
+  padding: 10px 14px; text-align: left; font-size: 10.5px;
+  font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+  color: var(--muted); background: var(--bg2); border-bottom: 1px solid var(--border);
+}
+.log-table td {
+  padding: 12px 14px; font-size: 13px; color: var(--text2);
+  border-bottom: 1px solid var(--border);
+}
+.log-table tr:last-child td { border: none; }
+.log-table tr:hover td { background: var(--bg2); }
+.log-status { font-size: 10.5px; padding: 2px 8px; border-radius: 10px; font-weight: 600; border: 1px solid; white-space: nowrap; }
+.ls-sent { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
+.ls-pending { background: var(--orange-bg); color: var(--orange); border-color: var(--orange-border); }
+.ls-failed { background: var(--red-bg); color: var(--red); border-color: var(--red-border); }
+
+/* ── Empty state ── */
+.empty-state { text-align: center; padding: 48px 24px; }
+.es-icon { font-size: 36px; margin-bottom: 14px; opacity: 0.4; }
+.es-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.es-sub { font-size: 13.5px; color: var(--muted); max-width: 360px; margin: 0 auto; }
+
+@media (max-width: 700px) {
+  .sidebar { display: none; }
+  .status-grid { grid-template-columns: 1fr 1fr; }
+  .template-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sid-top">
+    <div class="sid-logo">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#c2410c"/></svg>
+    </div>
+    <div class="sid-name">John</div>
+    <div class="sid-tag">Notifications</div>
+  </div>
+  <div class="sid-nav">
+    <div class="sid-label">Overview</div>
+    <button class="sid-item active" onclick="showPanel('feed',this)">Notification Feed<span class="sid-count">3</span></button>
+    <button class="sid-item" onclick="showPanel('log',this)">Delivery Log</button>
+
+    <div class="sid-label">Automation</div>
+    <button class="sid-item" onclick="showPanel('scheduler',this)">Scheduled Automations</button>
+    <button class="sid-item" onclick="showPanel('templates',this)">Message Templates</button>
+    <button class="sid-item" onclick="showPanel('compose',this)">Send Now</button>
+
+    <div class="sid-label">Configuration</div>
+    <button class="sid-item" onclick="showPanel('settings',this)">Notification Settings</button>
+    <button class="sid-item" onclick="window.open('john-mobile.html')">Open John App</button>
+    <button class="sid-item" onclick="window.open('john-pastoral-ai-v5.html')">Desktop App</button>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="tb-title" id="topbar-title">Notification Feed</div>
+      <div class="tb-sub" id="topbar-sub">All notifications · Today</div>
+    </div>
+    <div class="tb-actions">
+      <button class="tb-btn tb-ghost" onclick="markAllRead()">Mark all read</button>
+      <button class="tb-btn tb-primary" onclick="showPanel('compose',null)">Send Notification</button>
+    </div>
+  </div>
+
+  <div class="view-area">
+
+    <!-- ── FEED PANEL ── -->
+    <div class="panel active" id="panel-feed">
+
+      <!-- Permission banner -->
+      <div class="permission-banner" id="permBanner">
+        <div class="pb-text">
+          <div class="pb-title">Enable push notifications to get the most from John</div>
+          <div class="pb-sub">Emergency alerts, morning briefs, and prayer reports delivered instantly to your device</div>
+        </div>
+        <button class="pb-btn" onclick="requestPermission()">Enable Now</button>
+      </div>
+
+      <!-- Stats -->
+      <div class="status-grid">
+        <div class="stat-card"><div class="sc-num">3</div><div class="sc-label">Unread Today</div><div class="sc-delta dn">2 emergency</div></div>
+        <div class="stat-card"><div class="sc-num">47</div><div class="sc-label">Sent This Week</div><div class="sc-delta up">+12 vs last week</div></div>
+        <div class="stat-card"><div class="sc-num">12</div><div class="sc-label">Staff Reached</div><div class="sc-delta up">All delivered</div></div>
+        <div class="stat-card"><div class="sc-num">6:30</div><div class="sc-label">Next Scheduled</div><div class="sc-delta">Tomorrow AM</div></div>
+      </div>
+
+      <!-- Feed -->
+      <div class="notif-feed" id="notif-feed"></div>
+    </div>
+
+    <!-- ── SCHEDULER PANEL ── -->
+    <div class="panel" id="panel-scheduler">
+      <div class="schedule-grid" id="schedule-grid"></div>
+    </div>
+
+    <!-- ── TEMPLATES PANEL ── -->
+    <div class="panel" id="panel-templates">
+      <div class="template-grid" id="template-grid"></div>
+    </div>
+
+    <!-- ── COMPOSE PANEL ── -->
+    <div class="panel" id="panel-compose">
+      <div class="compose-wrap">
+        <div style="font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.02em;margin-bottom:20px">Send a Notification</div>
+
+        <div class="field-box">
+          <label class="field-label">Type</label>
+          <select class="field-select" id="comp-type" onchange="updateComposePreview()">
+            <option value="general">General</option>
+            <option value="emergency">Emergency Alert</option>
+            <option value="encouragement">Staff Encouragement</option>
+            <option value="prayer">Prayer Request</option>
+            <option value="report">Report / Update</option>
+            <option value="reminder">Reminder</option>
+          </select>
+        </div>
+
+        <div class="field-box">
+          <label class="field-label">Recipients</label>
+          <div class="recipient-chips">
+            <div class="r-chip selected" onclick="toggleRecipient(this)">All Staff</div>
+            <div class="r-chip" onclick="toggleRecipient(this)">Senior Pastor Only</div>
+            <div class="r-chip" onclick="toggleRecipient(this)">Worship Team</div>
+            <div class="r-chip" onclick="toggleRecipient(this)">Youth Team</div>
+            <div class="r-chip" onclick="toggleRecipient(this)">Admin Team</div>
+            <div class="r-chip" onclick="toggleRecipient(this)">Intercessors</div>
+          </div>
+        </div>
+
+        <div class="field-box">
+          <label class="field-label">Subject / Title</label>
+          <input class="field-input" id="comp-title" placeholder="e.g. Emergency Prayer Request — Martinez Family" oninput="updateComposePreview()" />
+        </div>
+
+        <div class="field-box">
+          <label class="field-label">Message</label>
+          <textarea class="field-textarea" id="comp-body" rows="5" placeholder="Write your message here, or let John generate it…" oninput="updateComposePreview()"></textarea>
+        </div>
+
+        <div class="field-box">
+          <label class="field-label">Schedule</label>
+          <select class="field-select" id="comp-when">
+            <option value="now">Send immediately</option>
+            <option value="morning">Tomorrow at 6:30 AM</option>
+            <option value="sunday">Sunday 7:00 AM (pre-service)</option>
+            <option value="tuesday">Tuesday 6:00 AM (prayer report)</option>
+            <option value="custom">Custom time…</option>
+          </select>
+        </div>
+
+        <div class="field-box">
+          <label class="field-label">Preview</label>
+          <div class="send-preview" id="comp-preview">Your message will appear here…</div>
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:center">
+          <button class="send-btn" id="sendBtn" onclick="sendNotification()">Send Notification</button>
+          <button class="tb-btn tb-ghost" onclick="generateWithJohn()">Let John write it</button>
+        </div>
+        <div id="send-status" style="margin-top:12px;font-size:13px;display:none"></div>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS PANEL ── -->
+    <div class="panel" id="panel-settings">
+      <div style="max-width:600px">
+        <div class="settings-section">
+          <div class="ss-title">Push Notifications</div>
+          <div class="setting-row">
+            <div class="sr-info"><div class="sr-label">Emergency alerts</div><div class="sr-sub">Immediate push for hospital visits, accidents, crisis situations</div></div>
+            <div class="sr-control"><button class="toggle on" id="tog-emergency" onclick="toggleSetting(this)"></button></div>
+          </div>
+          <div class="setting-row">
+            <div class="sr-info"><div class="sr-label">Daily encouragement</div><div class="sr-sub">Morning word delivered to all staff</div></div>
+            <div class="sr-control"><button class="toggle on" id="tog-encourage" onclick="toggleSetting(this)"></button></div>
+          </div>
+          <div class="setting-row">
+            <div class="sr-info"><div class="sr-label">Prayer request report</div><div class="sr-sub">Tuesday morning prayer summary</div></div>
+            <div class="sr-control"><button class="toggle on" id="tog-prayer" onclick="toggleSetting(this)"></button></div>
+          </div>
+          <div class="setting-row">
+            <div class="sr-info"><div class="sr-label">Sunday report</div><div class="sr-sub">Attendance, salvations, offering summary</div></div>
+            <div class="sr-control"><button class="toggle on" id="tog-sunday" onclick="toggleSetting(this)"></button></div>
+          </div>
+          <div class="setting-row">
+            <div class="sr-info"><div class="sr-label">Member milestones</div><div class="sr-sub">Birthdays, anniversaries, salvation anniversaries</div></div>
+            <div class="sr-control"><button class="toggle" id="tog-milestones" onclick="toggleSetting(this)"></button></div>
+          </div>
+          <div class="setting-row">
+            <div class="sr-info"><div class="sr-label">Travel reminders</div><div class="sr-sub">Flight check-in reminders, gate changes</div></div>
+            <div class="sr-control"><button class="toggle" id="tog-travel" onclick="toggleSetting(this)"></button></div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="ss-title">Timing</div>
+          <div class="setting-row">
+            <div class="sr-info"><div class="sr-label">Morning brief time</div><div class="sr-sub">Daily encouragement delivery to all staff</div></div>
+            <div class="sr-control"><input class="sr-input" type="time" value="06:30" /></div>
+          </div>
+          <div class="setting-row">
+            <div class="sr-info"><div class="sr-label">Prayer report time</div><div class="sr-sub">Tuesday morning prayer request summary</div></div>
+            <div class="sr-control"><input class="sr-input" type="time" value="07:00" /></div>
+          </div>
+          <div class="setting-row">
+            <div class="sr-info"><div class="sr-label">Sunday report delivery</div><div class="sr-sub">Post-service report generation</div></div>
+            <div class="sr-control">
+              <select class="sr-select"><option>1:00 PM Sunday</option><option>2:00 PM Sunday</option><option>Monday 8:00 AM</option></select>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div class="sr-info"><div class="sr-label">Quiet hours</div><div class="sr-sub">No non-emergency notifications during this window</div></div>
+            <div class="sr-control" style="gap:6px">
+              <input class="sr-input" type="time" value="22:00" style="width:80px"/>
+              <span style="color:var(--muted)">to</span>
+              <input class="sr-input" type="time" value="06:00" style="width:80px"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="ss-title">Delivery Channels</div>
+          <div class="setting-row">
+            <div class="sr-info"><div class="sr-label">Push notifications</div><div class="sr-sub">In-app and home screen alerts</div></div>
+            <div class="sr-control"><button class="toggle on" onclick="toggleSetting(this)"></button></div>
+          </div>
+          <div class="setting-row">
+            <div class="sr-info"><div class="sr-label">SMS text messages</div><div class="sr-sub">Via Twilio — requires phone numbers in staff profiles</div></div>
+            <div class="sr-control"><button class="toggle" onclick="toggleSetting(this)"></button></div>
+          </div>
+          <div class="setting-row">
+            <div class="sr-info"><div class="sr-label">Email</div><div class="sr-sub">Weekly digest and important updates</div></div>
+            <div class="sr-control"><button class="toggle" onclick="toggleSetting(this)"></button></div>
+          </div>
+          <div class="setting-row">
+            <div class="sr-info"><div class="sr-label">WhatsApp / Group messaging</div><div class="sr-sub">Coming soon — staff group chat integration</div></div>
+            <div class="sr-control"><span style="font-size:11px;color:var(--muted)">Coming soon</span></div>
+          </div>
+        </div>
+
+        <button class="send-btn" onclick="saveSettings()">Save Settings</button>
+      </div>
+    </div>
+
+    <!-- ── DELIVERY LOG PANEL ── -->
+    <div class="panel" id="panel-log">
+      <table class="log-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Type</th>
+            <th>Title</th>
+            <th>Recipients</th>
+            <th>Status</th>
+            <th>Opened</th>
+          </tr>
+        </thead>
+        <tbody id="log-body"></tbody>
+      </table>
+    </div>
+
+  </div><!-- /view-area -->
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+// ── Data ──
+const NOW = new Date();
+const fmt = (d,o) => new Date(d).toLocaleDateString('en-US',o);
+const fmtTime = d => new Date(d).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true});
+
+const NOTIFICATIONS = [
+  {
+    id:1, type:'emergency', unread:true,
+    title:'Emergency: Gloria Martinez',
+    text:'Carlos Martinez (husband of Sister Gloria) was rushed to the ICU following a stroke. Gloria is alone at Regional Medical Center. Her children are flying in. Immediate pastoral presence requested.',
+    time: new Date(Date.now() - 3 * 3600000).toISOString(),
+    source:'Prayer request system',
+    actions:['Prepare Visit','Draft Prayer Chain','Message Gloria']
+  },
+  {
+    id:2, type:'emergency', unread:true,
+    title:'Emergency: James Holloway Jr.',
+    text:'James Holloway Jr. (age 19) was involved in a serious car accident Saturday night. Stable but critical. Parents James Sr. and Brenda requesting pastoral support.',
+    time: new Date(Date.now() - 14 * 3600000).toISOString(),
+    source:'Church office text message',
+    actions:['Prepare Visit','Draft Prayer Chain','Message Family']
+  },
+  {
+    id:3, type:'report', unread:true,
+    title:'Sunday Report Ready',
+    text:'This Sunday: 247 in attendance (+18), 7 salvations, 14 first-time guests, 31 altar responses, $8,420 in tithes and offerings. Full report available in the dashboard.',
+    time: new Date(Date.now() - 6 * 3600000).toISOString(),
+    source:'Auto-generated by John',
+    actions:['View Full Report','Share with Board','Generate Board Letter']
+  },
+  {
+    id:4, type:'encouragement', unread:false,
+    title:'Staff Encouragement Delivered',
+    text:'"You didn\'t sign up for ministry because it was easy. You signed up because something inside you said this matters. It still does." — Delivered to 12 staff members at 6:30 AM.',
+    time: new Date(Date.now() - 8 * 3600000).toISOString(),
+    source:'John auto-delivery',
+    actions:['View Message','Regenerate for Tomorrow']
+  },
+  {
+    id:5, type:'prayer', unread:false,
+    title:'Tuesday Prayer Report',
+    text:'7 prayer requests this week. 2 emergency flags (Martinez, Holloway). Health: Deacon Foster (surgery Thursday). Family: Henderson marriage. Grief: Yvonne Chambers. Financial: Tony Reeves.',
+    time: new Date(Date.now() - 26 * 3600000).toISOString(),
+    source:'John auto-report',
+    actions:['View Full Report','Forward to Intercessors']
+  },
+  {
+    id:6, type:'member', unread:false,
+    title:'Birthday Today — Sister Tina Brooks',
+    text:'Tina Brooks celebrates her birthday today. She was instrumental in bringing the Okafor family to church last Sunday — both were saved. Consider a personal message.',
+    time: new Date(Date.now() - 32 * 3600000).toISOString(),
+    source:'Member database',
+    actions:['Send Birthday Message','Call Her']
+  },
+  {
+    id:7, type:'system', unread:false,
+    title:'Flight Check-in Reminder',
+    text:'Your Delta flight to Atlanta departs in 24 hours (tomorrow, 7:45 AM). Check-in opens now. Confirmation: DL4892. Hotel: Marriott Atlanta Downtown.',
+    time: new Date(Date.now() - 2 * 3600000).toISOString(),
+    source:'Travel booking system',
+    actions:['Check In Now','View Itinerary']
+  },
+];
+
+const SCHEDULES = [
+  {
+    id:'encouragement', name:'Daily Staff Encouragement', icon:'W',
+    iconColor:'orange',
+    desc:'John drafts a fresh, Spirit-led word every morning and delivers it to all staff members.',
+    schedule:'Every day at 6:30 AM',
+    lastRun: new Date(Date.now() - 8 * 3600000).toISOString(),
+    enabled:true
+  },
+  {
+    id:'prayer-report', name:'Tuesday Prayer Report', icon:'T',
+    iconColor:'purple',
+    desc:'John compiles all prayer requests from the week, flags emergencies, and delivers a structured report.',
+    schedule:'Every Tuesday at 7:00 AM',
+    lastRun: new Date(Date.now() - 26 * 3600000).toISOString(),
+    enabled:true
+  },
+  {
+    id:'sunday-report', name:'Sunday Report', icon:'S',
+    iconColor:'blue',
+    desc:'After Sunday services, John auto-generates attendance, salvations, giving, and altar response summary.',
+    schedule:'Every Sunday at 1:00 PM',
+    lastRun: new Date(Date.now() - 6 * 3600000).toISOString(),
+    enabled:true
+  },
+  {
+    id:'newcomer-followup', name:'Newcomer Follow-up Reminder', icon:'N',
+    iconColor:'green',
+    desc:'Reminds pastor to follow up with first-time guests within 48 hours of their visit.',
+    schedule:'Monday and Wednesday at 9:00 AM',
+    lastRun: new Date(Date.now() - 48 * 3600000).toISOString(),
+    enabled:true
+  },
+  {
+    id:'pre-service', name:'Pre-Service Morning Brief', icon:'P',
+    iconColor:'orange',
+    desc:'Sunday morning quick brief: weather, attendance trends, prayer requests, sermon reminder.',
+    schedule:'Every Sunday at 7:00 AM',
+    lastRun: new Date(Date.now() - 6 * 3600000).toISOString(),
+    enabled:true
+  },
+  {
+    id:'birthdays', name:'Birthday & Anniversary Alerts', icon:'B',
+    iconColor:'green',
+    desc:'Notifies pastor of member birthdays, salvation anniversaries, and wedding anniversaries.',
+    schedule:'Daily at 7:00 AM',
+    lastRun: new Date(Date.now() - 8 * 3600000).toISOString(),
+    enabled:false
+  },
+  {
+    id:'absentee', name:'Absentee Member Alert', icon:'A',
+    iconColor:'red',
+    desc:'Flags members who have missed 3+ consecutive Sundays for pastoral follow-up.',
+    schedule:'Every Monday at 10:00 AM',
+    lastRun: new Date(Date.now() - 72 * 3600000).toISOString(),
+    enabled:false
+  },
+  {
+    id:'giving-report', name:'Weekly Giving Summary', icon:'G',
+    iconColor:'blue',
+    desc:'Weekly offering totals and giving trends compared to budget and prior year.',
+    schedule:'Every Monday at 8:00 AM',
+    lastRun: new Date(Date.now() - 48 * 3600000).toISOString(),
+    enabled:false
+  },
+];
+
+const TEMPLATES = [
+  {
+    name:'Morning Encouragement', type:'encouragement', iconColor:'orange',
+    trigger:'Auto-sends daily at 6:30 AM',
+    preview:'"Before the first task lands on your desk today, remember this — you are called. Not by accident, not by default. Called. Let that be enough for this moment. Now go be who He made you to be."\n\n— John · Galatians 6:9'
+  },
+  {
+    name:'Emergency Prayer Chain', type:'emergency', iconColor:'red',
+    trigger:'Triggered by emergency prayer request',
+    preview:'URGENT PRAYER REQUEST\n\nPlease stop and pray right now for [Name] who [situation]. This is an urgent need. The family has requested our prayers and pastoral presence.\n\nPastor [Name] has been notified and is responding. Please keep this family in your prayers today.'
+  },
+  {
+    name:'Tuesday Prayer Report', type:'prayer', iconColor:'purple',
+    trigger:'Auto-sends every Tuesday at 7:00 AM',
+    preview:'PRAYER REPORT — [Date]\n\n🚨 Emergency (2): Martinez family (ICU), Holloway family (accident)\n🙏 Health (1): Deacon Foster — surgery Thursday\n💛 Family (1): Henderson marriage — ongoing\n📖 Spiritual (1): Priscilla Davis — breakthrough needed\n\nPlease lift these families this week.'
+  },
+  {
+    name:'Sunday Morning Brief', type:'report', iconColor:'blue',
+    trigger:'Auto-sends every Sunday at 7:00 AM',
+    preview:'SUNDAY MORNING BRIEF\n\nGood morning, [Pastor Name]. Here\'s your quick overview:\n\n• 3 prayer requests need follow-up\n• 14 first-time guests expected (based on registrations)\n• Message: [Sermon Title]\n• Weather: Clear, good conditions\n\nGo get \'em, Pastor. Today matters.'
+  },
+  {
+    name:'Newcomer Welcome', type:'member', iconColor:'green',
+    trigger:'Sent 24 hours after first visit',
+    preview:'Hi [Name], this is Pastor [Name] from [Church Name]. It was wonderful having you with us this Sunday. You are always welcome here.\n\nI\'d love to connect with you — feel free to reach out anytime. We have a connect gathering [day] at [time] that would be a great next step if you\'re interested.\n\nBlessed to have met you. — Pastor [Name]'
+  },
+  {
+    name:'Absentee Follow-up', type:'member', iconColor:'green',
+    trigger:'Triggered after 3 missed Sundays',
+    preview:'Hi [Name], I\'ve been thinking about you and wanted to reach out. We\'ve missed seeing you at [Church Name] lately. I hope everything is well.\n\nIf there\'s anything on your heart or anything I can pray for you about, please don\'t hesitate to reach out. You matter to us.\n\nWith care, Pastor [Name]'
+  },
+  {
+    name:'Pre-Surgery Care', type:'general', iconColor:'blue',
+    trigger:'Manually triggered before member surgery',
+    preview:'[Name], I want you to know that you are covered in prayer as you head into surgery. God\'s hand is on you, His peace surrounds you, and His healing power is at work.\n\nWe are believing with you for a smooth procedure and a swift recovery. I\'ll be checking in on you soon.\n\nIn His grace, Pastor [Name]'
+  },
+  {
+    name:'Salvation Follow-up', type:'member', iconColor:'green',
+    trigger:'Sent within 48 hours of salvation decision',
+    preview:'[Name], what happened this Sunday was not an accident. God drew you specifically. What you did at that altar was the most important decision you will ever make.\n\nI want to help you take your next step. Can we connect this week? I\'d love to spend 30 minutes with you. — Pastor [Name]'
+  },
+];
+
+const LOG_ENTRIES = [
+  { time:'Today 6:30 AM', type:'encouragement', title:'Daily Staff Encouragement', recipients:'12 staff', status:'sent', opened:'11/12' },
+  { time:'Today 6:14 AM', type:'emergency', title:'Emergency: Gloria Martinez', recipients:'Pastor + 2 elders', status:'sent', opened:'3/3' },
+  { time:'Yesterday 7:00 AM', type:'prayer', title:'Tuesday Prayer Report', recipients:'Pastor + prayer team', status:'sent', opened:'8/9' },
+  { time:'Yesterday 6:30 AM', type:'encouragement', title:'Daily Staff Encouragement', recipients:'12 staff', status:'sent', opened:'10/12' },
+  { time:'Sun 1:15 PM', type:'report', title:'Sunday Report Ready', recipients:'Pastor + admin', status:'sent', opened:'2/2' },
+  { time:'Sun 7:00 AM', type:'report', title:'Sunday Morning Brief', recipients:'Pastor', status:'sent', opened:'1/1' },
+  { time:'Sat 11:45 PM', type:'emergency', title:'Emergency: Holloway Jr.', recipients:'Pastor + 2 elders', status:'sent', opened:'3/3' },
+  { time:'Mon 9:00 AM', type:'member', title:'Newcomer Follow-up Reminder', recipients:'Pastor', status:'sent', opened:'1/1' },
+  { time:'Mon 8:00 AM', type:'encouragement', title:'Daily Staff Encouragement', recipients:'12 staff', status:'sent', opened:'9/12' },
+  { time:'Mon 7:00 AM', type:'member', title:'Birthday: Marcus Williams', recipients:'Pastor', status:'pending', opened:'—' },
+];
+
+// ── Type config ──
+const TYPE_DOT = { emergency:'dot-emergency', prayer:'dot-prayer', encouragement:'dot-encouragement', report:'dot-report', member:'dot-member', system:'dot-system' };
+const TYPE_BADGE = { emergency:'badge-emergency', prayer:'badge-prayer', encouragement:'badge-encouragement', report:'badge-report', member:'badge-member', system:'badge-system' };
+const TYPE_LABEL = { emergency:'Emergency', prayer:'Prayer', encouragement:'Encouragement', report:'Report', member:'Member', system:'System' };
+const LOG_STATUS = { sent:'ls-sent', pending:'ls-pending', failed:'ls-failed' };
+
+// ── Render ──
+function renderFeed() {
+  const c = document.getElementById('notif-feed');
+  c.innerHTML = NOTIFICATIONS.map(n => `
+    <div class="notif-card ${n.unread?'unread':''} ${n.type==='emergency'?'emergency':''}">
+      <div class="notif-type-dot ${TYPE_DOT[n.type]||'dot-system'}"></div>
+      <div class="notif-body">
+        <div class="nb-header">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="nb-title">${n.title}</div>
+            <span class="type-badge ${TYPE_BADGE[n.type]}">${TYPE_LABEL[n.type]}</span>
+          </div>
+          <div class="nb-time">${fmtTime(n.time)}</div>
+        </div>
+        <div class="nb-text">${n.text}</div>
+        <div class="nb-actions">
+          ${n.actions.map(a => `<button class="nb-btn ${n.type==='emergency'&&a.includes('Visit')?'red':''}" onclick="handleAction('${a}','${n.title}')">${a}</button>`).join('')}
+        </div>
+        <div class="nb-meta">${n.source} · ${fmt(n.time,{month:'short',day:'numeric',year:'numeric'})} at ${fmtTime(n.time)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderSchedules() {
+  document.getElementById('schedule-grid').innerHTML = SCHEDULES.map(s => `
+    <div class="schedule-card">
+      <div class="sch-icon ${s.iconColor}">${s.icon}</div>
+      <div class="sch-info">
+        <div class="sch-name">${s.name}</div>
+        <div class="sch-desc">${s.desc}</div>
+        <div class="sch-schedule">${s.schedule}</div>
+      </div>
+      <div class="sch-right">
+        <div class="sch-last">Last: ${fmtTime(s.lastRun)}<br><span style="font-size:10px;color:var(--muted)">${fmt(s.lastRun,{month:'short',day:'numeric'})}</span></div>
+        <div class="toggle-wrap">
+          <button class="toggle ${s.enabled?'on':''}" onclick="toggleSchedule('${s.id}',this)"></button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderTemplates() {
+  const ICON_BG = { orange:'sch-icon orange', red:'sch-icon red', blue:'sch-icon blue', green:'sch-icon green', purple:'sch-icon purple' };
+  document.getElementById('template-grid').innerHTML = TEMPLATES.map(t => `
+    <div class="template-card">
+      <div class="tc-top">
+        <div class="sch-icon ${t.iconColor}" style="width:36px;height:36px;border-radius:9px">${t.name[0]}</div>
+        <div>
+          <div class="tc-name">${t.name}</div>
+          <div class="tc-trigger">${t.trigger}</div>
+        </div>
+      </div>
+      <div class="tc-preview">${t.preview}</div>
+      <div class="tc-actions">
+        <button class="tc-btn primary" onclick="useTemplate('${t.name}','${t.type}',\`${t.preview.replace(/`/g,"'")}\`)">Use Template</button>
+        <button class="tc-btn" onclick="editTemplate('${t.name}')">Edit</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderLog() {
+  document.getElementById('log-body').innerHTML = LOG_ENTRIES.map(e => `
+    <tr>
+      <td>${e.time}</td>
+      <td><span class="type-badge ${TYPE_BADGE[e.type]}">${TYPE_LABEL[e.type]}</span></td>
+      <td>${e.title}</td>
+      <td>${e.recipients}</td>
+      <td><span class="log-status ${LOG_STATUS[e.status]}">${e.status.charAt(0).toUpperCase()+e.status.slice(1)}</span></td>
+      <td>${e.opened}</td>
+    </tr>
+  `).join('');
+}
+
+// ── Panel switching ──
+const PANEL_TITLES = {
+  feed: ['Notification Feed','All notifications · Today'],
+  scheduler: ['Scheduled Automations','John runs these automatically — no action needed'],
+  templates: ['Message Templates','Pre-built messages for every ministry moment'],
+  compose: ['Send Notification','Deliver a message to your team right now'],
+  settings: ['Notification Settings','Control what John sends and when'],
+  log: ['Delivery Log','Full history of every notification John has sent'],
+};
+
+function showPanel(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  document.querySelectorAll('.sid-item').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const [title, sub] = PANEL_TITLES[id] || ['John',''];
+  document.getElementById('topbar-title').textContent = title;
+  document.getElementById('topbar-sub').textContent = sub;
+}
+
+// ── Actions ──
+function handleAction(action, notifTitle) {
+  const map = {
+    'Prepare Visit': 'john-pastoral-ai-v5.html',
+    'Draft Prayer Chain': 'john-pastoral-ai-v5.html',
+    'Message Gloria': 'john-pastoral-ai-v5.html',
+    'Message Family': 'john-pastoral-ai-v5.html',
+    'View Full Report': 'john-pastoral-ai-v5.html',
+  };
+  if (map[action]) window.open(map[action]);
+  else alert(`Opening: ${action} for "${notifTitle}"`);
+}
+
+function markAllRead() {
+  NOTIFICATIONS.forEach(n => n.unread = false);
+  renderFeed();
+}
+
+function toggleSchedule(id, btn) {
+  btn.classList.toggle('on');
+  const s = SCHEDULES.find(x => x.id === id);
+  if (s) s.enabled = btn.classList.contains('on');
+}
+
+function toggleSetting(btn) { btn.classList.toggle('on'); }
+function toggleRecipient(chip) { chip.classList.toggle('selected'); }
+
+function useTemplate(name, type, preview) {
+  showPanel('compose', null);
+  document.getElementById('comp-type').value = type;
+  document.getElementById('comp-title').value = name;
+  document.getElementById('comp-body').value = preview;
+  document.getElementById('comp-preview').textContent = preview;
+}
+
+function editTemplate(name) {
+  alert(`Template editor coming soon — "${name}" will be editable inline.`);
+}
+
+async function generateWithJohn() {
+  const type = document.getElementById('comp-type').value;
+  const btn = document.querySelector('[onclick="generateWithJohn()"]');
+  btn.textContent = 'John is writing…'; btn.disabled = true;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 400,
+        messages: [{ role:'user', content:`Write a short, warm, Spirit-led ${type} notification message for a pastor to send to their church staff. It should feel personal, not corporate. Keep it under 120 words. No subject line needed — just the body.` }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.map(b => b.text || '').join('') || '';
+    document.getElementById('comp-body').value = text;
+    document.getElementById('comp-preview').textContent = text;
+  } catch(e) {
+    console.error(e);
+  }
+  btn.textContent = 'Let John write it'; btn.disabled = false;
+}
+
+function updateComposePreview() {
+  const title = document.getElementById('comp-title').value;
+  const body = document.getElementById('comp-body').value;
+  const preview = document.getElementById('comp-preview');
+  preview.textContent = [title ? `📢 ${title}\n` : '', body || 'Your message will appear here…'].join('\n').trim();
+}
+
+async function sendNotification() {
+  const title = document.getElementById('comp-title').value.trim();
+  const body = document.getElementById('comp-body').value.trim();
+  const when = document.getElementById('comp-when').value;
+  const status = document.getElementById('send-status');
+
+  if (!title || !body) {
+    status.textContent = 'Please add a title and message before sending.';
+    status.style.color = 'var(--red)';
+    status.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('sendBtn');
+  btn.textContent = when === 'now' ? 'Sending…' : 'Scheduling…';
+  btn.disabled = true;
+
+  // Simulate delivery
+  await new Promise(r => setTimeout(r, 1200));
+
+  // Push notification if permission granted
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, {
+      body: body.substring(0, 120),
+      icon: 'john-icon-192.png',
+      vibrate: [100, 50, 100],
+    });
+  }
+
+  // Add to feed
+  NOTIFICATIONS.unshift({
+    id: Date.now(), type: document.getElementById('comp-type').value, unread: true,
+    title, text: body,
+    time: new Date().toISOString(),
+    source: when === 'now' ? 'Manual send' : `Scheduled for ${when}`,
+    actions: ['View', 'Dismiss']
+  });
+
+  status.textContent = when === 'now' ? '✓ Notification delivered to all selected recipients.' : '✓ Notification scheduled successfully.';
+  status.style.color = 'var(--green)';
+  status.style.display = 'block';
+
+  btn.textContent = 'Send Notification'; btn.disabled = false;
+  document.getElementById('comp-title').value = '';
+  document.getElementById('comp-body').value = '';
+  document.getElementById('comp-preview').textContent = 'Your message will appear here…';
+}
+
+function saveSettings() {
+  const btn = document.querySelector('[onclick="saveSettings()"]');
+  btn.textContent = '✓ Settings Saved'; btn.style.background = 'var(--green)';
+  setTimeout(() => { btn.textContent = 'Save Settings'; btn.style.background = ''; }, 2000);
+}
+
+// ── Push permission ──
+async function requestPermission() {
+  if (!('Notification' in window)) {
+    alert('Push notifications are not supported in this browser.');
+    return;
+  }
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    document.getElementById('permBanner').style.display = 'none';
+    new Notification('John is ready', {
+      body: 'Emergency alerts, morning briefs, and prayer reports will now reach you instantly.',
+    });
+  }
+}
+
+function checkPermission() {
+  if (!('Notification' in window)) { document.getElementById('permBanner').style.display = 'none'; return; }
+  if (Notification.permission === 'granted') document.getElementById('permBanner').style.display = 'none';
+}
+
+// ── Live clock in topbar sub ──
+function updateClock() {
+  const now = new Date();
+  const t = now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true});
+  const d = now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  if (document.getElementById('panel-feed').classList.contains('active')) {
+    document.getElementById('topbar-sub').textContent = `All notifications · ${d} · ${t}`;
+  }
+}
+
+// ── Init ──
+renderFeed();
+renderSchedules();
+renderTemplates();
+renderLog();
+checkPermission();
+setInterval(updateClock, 1000);
+updateClock();
+</script>
+</body>
+</html>

@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>John — Travel</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fcfaf6;--bg2:#f5f2eb;--surface:#fff;
+  --border:#e8e3d9;--border2:#d4cec4;
+  --text:#1c1917;--text2:#57534e;--muted:#a8a29e;
+  --orange:#c2410c;--ol:#ea580c;
+  --obg:rgba(194,65,12,.07);--oborder:rgba(194,65,12,.2);
+  --red:#b91c1c;--rbg:rgba(185,28,28,.07);--rborder:rgba(185,28,28,.18);
+  --green:#15803d;--gbg:rgba(21,128,61,.07);--gborder:rgba(21,128,61,.2);
+  --blue:#1d4ed8;--bbg:rgba(29,78,216,.07);--bborder:rgba(29,78,216,.18);
+  --r:12px;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px}
+
+/* ── Layout ── */
+.shell{display:flex;min-height:100vh}
+
+/* Sidebar */
+.sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sid-brand{height:56px;display:flex;align-items:center;gap:9px;padding:0 16px;
+  border-bottom:1px solid var(--border)}
+.sid-brand svg{width:18px;height:18px}
+.sid-brand-name{font-size:16px;font-weight:700;color:var(--text);letter-spacing:-.03em}
+.sid-nav{flex:1;padding:14px 10px}
+.s-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);padding:0 8px;margin-bottom:4px;margin-top:16px;display:block}
+.s-label:first-child{margin-top:0}
+.s-item{display:flex;align-items:center;justify-content:space-between;width:100%;
+  padding:8px 10px;border:none;background:transparent;text-align:left;font-family:inherit;
+  font-size:13px;color:var(--text2);cursor:pointer;border-radius:6px;margin-bottom:1px;
+  transition:all .12s;border-left:2px solid transparent}
+.s-item:hover{background:var(--bg2);color:var(--text)}
+.s-item.active{background:var(--obg);color:var(--orange);border-left-color:var(--orange);font-weight:500}
+.s-badge{font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:10px;background:var(--green);color:white}
+.s-badge.red{background:var(--red)}
+
+/* Main */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 28px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.tb-left h2{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-.02em}
+.tb-left p{font-size:12px;color:var(--muted);margin-top:1px}
+.tb-btn{padding:8px 16px;border-radius:8px;font-family:inherit;font-size:13px;
+  font-weight:500;cursor:pointer;transition:all .14s}
+.tb-primary{background:var(--orange);border:none;color:white}
+.tb-primary:hover{background:var(--ol)}
+.tb-ghost{background:transparent;border:1px solid var(--border2);color:var(--text2)}
+.tb-ghost:hover{border-color:var(--orange);color:var(--orange)}
+
+.view-area{flex:1;overflow-y:auto;padding:24px 28px}
+.view-area::-webkit-scrollbar{width:4px}
+.view-area::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+/* Panels */
+.panel{display:none}.panel.active{display:block}
+
+/* ── Setup wizard ── */
+.setup-hero{text-align:center;padding:40px 24px 32px;max-width:560px;margin:0 auto}
+.sh-badge{display:inline-block;padding:4px 14px;background:var(--obg);border:1px solid var(--oborder);
+  border-radius:20px;font-size:12px;font-weight:600;color:var(--orange);margin-bottom:16px;letter-spacing:.04em}
+.sh-title{font-size:28px;font-weight:700;color:var(--text);letter-spacing:-.03em;margin-bottom:10px}
+.sh-sub{font-size:15px;color:var(--text2);line-height:1.65;margin-bottom:28px}
+.setup-steps{display:flex;justify-content:center;gap:0;margin-bottom:32px;max-width:480px;margin-left:auto;margin-right:auto}
+.ss-step{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;position:relative}
+.ss-step:not(:last-child)::after{content:'';position:absolute;top:15px;left:60%;width:80%;height:1px;background:var(--border2)}
+.ss-step.done::after{background:var(--orange)}
+.ss-num{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;border:1.5px solid var(--border2);background:var(--surface);color:var(--muted);z-index:1}
+.ss-step.done .ss-num{background:var(--orange);border-color:var(--orange);color:white}
+.ss-step.active .ss-num{border-color:var(--orange);color:var(--orange);background:var(--obg)}
+.ss-label{font-size:11px;color:var(--muted);text-align:center}
+.ss-step.active .ss-label{color:var(--orange);font-weight:600}
+.ss-step.done .ss-label{color:var(--green);font-weight:500}
+
+/* Setup card */
+.setup-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:28px 32px;max-width:560px;margin:0 auto}
+.sc-step{display:none}.sc-step.active{display:block}
+.sc-tag{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);margin-bottom:7px}
+.sc-title{font-size:20px;font-weight:700;color:var(--text);letter-spacing:-.03em;margin-bottom:6px}
+.sc-note{font-size:13.5px;color:var(--text2);line-height:1.65;margin-bottom:20px}
+
+/* Form fields */
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.field-row.full{grid-template-columns:1fr}
+.field-box{display:flex;flex-direction:column;gap:4px}
+.field-label{font-size:11.5px;font-weight:600;color:var(--text2)}
+.field-input{padding:10px 13px;background:var(--bg);border:1.5px solid var(--border2);
+  border-radius:9px;font-family:inherit;font-size:14px;color:var(--text);outline:none;transition:border-color .18s}
+.field-input:focus{border-color:var(--orange)}
+.field-input::placeholder{color:var(--muted)}
+.field-select{padding:10px 13px;background:var(--bg);border:1.5px solid var(--border2);
+  border-radius:9px;font-family:inherit;font-size:14px;color:var(--text);outline:none;cursor:pointer}
+.field-select:focus{border-color:var(--orange)}
+
+/* Option chips for preferences */
+.pref-opts{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
+.pref-opt{padding:6px 14px;border:1.5px solid var(--border2);border-radius:20px;
+  font-family:inherit;font-size:12.5px;color:var(--text2);background:var(--bg);cursor:pointer;transition:all .14s}
+.pref-opt:hover{border-color:var(--orange);color:var(--orange)}
+.pref-opt.sel{border-color:var(--orange);background:var(--obg);color:var(--orange);font-weight:500}
+
+/* Stripe card field mock */
+.stripe-field{background:var(--bg);border:1.5px solid var(--border2);border-radius:9px;
+  padding:12px 14px;display:flex;align-items:center;gap:10px;transition:border-color .18s;margin-bottom:10px}
+.stripe-field:focus-within{border-color:var(--orange)}
+.stripe-input{flex:1;border:none;background:transparent;outline:none;font-family:inherit;
+  font-size:14px;color:var(--text);letter-spacing:.06em}
+.stripe-input::placeholder{color:var(--muted);letter-spacing:normal}
+.card-brands{display:flex;gap:5px}
+.card-brand{background:var(--bg2);border:1px solid var(--border);border-radius:4px;
+  padding:2px 6px;font-size:9.5px;font-weight:700;color:var(--text2);letter-spacing:.04em}
+
+.secure-note{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);
+  margin-top:8px;padding:8px 12px;background:var(--gbg);border-radius:8px;border:1px solid var(--gborder)}
+.secure-note svg{flex-shrink:0;color:var(--green)}
+
+.setup-next{width:100%;padding:13px;border:none;border-radius:10px;background:var(--orange);
+  color:white;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;
+  transition:all .14s;margin-top:16px}
+.setup-next:hover{background:var(--ol);transform:translateY(-1px)}
+.setup-skip{display:block;text-align:center;margin-top:10px;font-size:12px;color:var(--muted);cursor:pointer}
+.setup-skip:hover{color:var(--text2)}
+
+/* ── Booking flow ── */
+.book-hero{max-width:700px}
+.bh-title{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-.03em;margin-bottom:4px}
+.bh-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+
+/* Trip intent card */
+.trip-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:18px 20px;margin-bottom:14px}
+.tc-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:12px}
+.trip-form{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;align-items:end}
+.tf-box{display:flex;flex-direction:column;gap:4px}
+.tf-label{font-size:11.5px;font-weight:600;color:var(--text2)}
+.tf-input{padding:10px 13px;background:var(--bg);border:1.5px solid var(--border2);
+  border-radius:9px;font-family:inherit;font-size:14px;color:var(--text);outline:none;transition:border-color .18s;width:100%}
+.tf-input:focus{border-color:var(--orange)}
+.tf-input::placeholder{color:var(--muted)}
+.search-btn{padding:11px 22px;background:var(--orange);border:none;border-radius:9px;
+  color:white;font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer;
+  transition:all .14s;white-space:nowrap;align-self:flex-end}
+.search-btn:hover{background:var(--ol)}
+
+/* Autonomous mode banner */
+.auto-banner{background:var(--obg);border:1px solid var(--oborder);border-radius:10px;
+  padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.ab-info{flex:1}
+.ab-title{font-size:13px;font-weight:700;color:var(--orange)}
+.ab-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.auto-toggle{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.at-label{font-size:12px;color:var(--text2)}
+.toggle-btn{width:42px;height:24px;border-radius:12px;border:none;cursor:pointer;
+  transition:background .2s;position:relative;background:var(--border2)}
+.toggle-btn.on{background:var(--orange)}
+.toggle-btn::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;
+  border-radius:50%;background:white;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.toggle-btn.on::after{transform:translateX(18px)}
+
+/* Results sections */
+.results-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px}
+.result-section{}
+.rs-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--muted);margin-bottom:9px}
+
+/* Flight result card */
+.flight-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);
+  padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:all .15s;position:relative}
+.flight-card:hover{border-color:var(--orange);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.07)}
+.flight-card.selected{border-color:var(--orange);background:var(--obg)}
+.flight-card.best-value::before{content:'Best Value';position:absolute;top:-1px;right:12px;
+  background:var(--green);color:white;font-size:9.5px;font-weight:700;
+  padding:2px 8px;border-radius:0 0 6px 6px;letter-spacing:.04em}
+.fc-airline{font-size:13px;font-weight:700;color:var(--text);margin-bottom:5px}
+.fc-route{font-size:12px;color:var(--text2);margin-bottom:3px}
+.fc-time{font-size:11.5px;color:var(--muted);margin-bottom:8px}
+.fc-bottom{display:flex;align-items:center;justify-content:space-between}
+.fc-price{font-size:18px;font-weight:700;color:var(--text)}
+.fc-stops{font-size:11px;color:var(--muted)}
+.fc-select-btn{font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--border2);
+  background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;transition:all .12s}
+.fc-select-btn:hover,.flight-card.selected .fc-select-btn{border-color:var(--orange);color:var(--orange);background:var(--obg)}
+
+/* Hotel card */
+.hotel-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);
+  padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:all .15s}
+.hotel-card:hover{border-color:var(--orange);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.07)}
+.hotel-card.selected{border-color:var(--orange);background:var(--obg)}
+.hc-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}
+.hc-stars{font-size:11px;color:var(--orange);margin-bottom:4px}
+.hc-amenities{font-size:11.5px;color:var(--muted);margin-bottom:8px;line-height:1.5}
+.hc-bottom{display:flex;align-items:center;justify-content:space-between}
+.hc-price{font-size:16px;font-weight:700;color:var(--text)}
+.hc-per{font-size:11px;color:var(--muted)}
+
+/* Car card */
+.car-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);
+  padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:all .15s}
+.car-card:hover{border-color:var(--orange);transform:translateY(-1px)}
+.car-card.selected{border-color:var(--orange);background:var(--obg)}
+.cc-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}
+.cc-type{font-size:11.5px;color:var(--text2);margin-bottom:4px}
+.cc-features{font-size:11.5px;color:var(--muted);margin-bottom:8px}
+.cc-price{font-size:16px;font-weight:700;color:var(--text)}
+
+/* Summary & confirm */
+.booking-summary{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:20px 22px;margin-bottom:14px;position:sticky;top:20px}
+.bs-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px}
+.bs-line{display:flex;justify-content:space-between;font-size:13px;color:var(--text2);
+  padding:7px 0;border-bottom:1px solid var(--border)}
+.bs-line:last-of-type{border:none}
+.bs-line.total{font-weight:700;color:var(--text);font-size:15px;padding-top:10px}
+.bs-label{color:var(--muted)}
+.confirm-btn{width:100%;padding:13px;border:none;border-radius:10px;background:var(--orange);
+  color:white;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;
+  margin-top:14px;transition:all .14s;display:flex;align-items:center;justify-content:center;gap:8px}
+.confirm-btn:hover{background:var(--ol);transform:translateY(-1px)}
+.confirm-btn:disabled{background:var(--border2);color:var(--muted);cursor:not-allowed;transform:none}
+.auto-confirm-note{font-size:11.5px;color:var(--muted);text-align:center;margin-top:8px;line-height:1.5}
+
+/* ── Confirmation ── */
+.confirm-hero{max-width:560px;margin:0 auto;text-align:center;padding:48px 24px}
+.ch-circle{width:72px;height:72px;border-radius:50%;background:var(--gbg);border:2px solid var(--gborder);
+  display:flex;align-items:center;justify-content:center;font-size:28px;
+  margin:0 auto 20px;animation:popIn .4s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes popIn{from{transform:scale(0.5);opacity:0}to{transform:scale(1);opacity:1}}
+.ch-title{font-size:26px;font-weight:700;color:var(--text);letter-spacing:-.03em;margin-bottom:10px}
+.ch-sub{font-size:15px;color:var(--text2);line-height:1.65;margin-bottom:28px}
+.conf-details{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:18px 20px;text-align:left;max-width:420px;margin:0 auto 24px}
+.cd-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);
+  font-size:13.5px}
+.cd-row:last-child{border:none}
+.cd-label{color:var(--muted)}
+.cd-val{font-weight:600;color:var(--text)}
+.ch-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.ch-btn{padding:10px 22px;border-radius:9px;font-family:inherit;font-size:13.5px;
+  font-weight:600;cursor:pointer;transition:all .14s}
+.ch-primary{background:var(--orange);border:none;color:white}
+.ch-primary:hover{background:var(--ol)}
+.ch-ghost{background:transparent;border:1px solid var(--border2);color:var(--text2)}
+.ch-ghost:hover{border-color:var(--orange);color:var(--orange)}
+
+/* ── Vault (saved preferences) ── */
+.vault-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.vault-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px}
+.vc-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--muted);margin-bottom:12px}
+.vc-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);
+  font-size:13px}
+.vc-row:last-child{border:none}
+.vc-label{color:var(--muted)}
+.vc-val{font-weight:500;color:var(--text);text-align:right}
+.edit-btn{font-size:12px;padding:4px 11px;border-radius:6px;border:1px solid var(--border2);
+  background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;transition:all .12s;margin-top:10px}
+.edit-btn:hover{border-color:var(--orange);color:var(--orange)}
+
+/* ── History ── */
+.trip-history{display:flex;flex-direction:column;gap:10px}
+.th-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:16px 18px;display:flex;align-items:flex-start;gap:14px}
+.th-icon{width:40px;height:40px;border-radius:10px;background:var(--obg);border:1px solid var(--oborder);
+  display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.th-info{flex:1}
+.th-title{font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:3px}
+.th-detail{font-size:12.5px;color:var(--text2);margin-bottom:5px}
+.th-meta{font-size:11px;color:var(--muted)}
+.th-status{font-size:10.5px;padding:3px 9px;border-radius:10px;font-weight:700;
+  border:1px solid;white-space:nowrap;align-self:flex-start}
+.th-booked{background:var(--gbg);color:var(--green);border-color:var(--gborder)}
+.th-upcoming{background:var(--obg);color:var(--orange);border-color:var(--oborder)}
+.th-past{background:var(--bg2);color:var(--muted);border-color:var(--border2)}
+
+/* ── Backend contract section ── */
+.api-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:20px 22px;margin-bottom:14px}
+.api-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}
+.api-sub{font-size:12px;color:var(--muted);margin-bottom:14px}
+.api-endpoint{background:var(--bg);border:1px solid var(--border2);border-radius:8px;
+  padding:10px 14px;font-family:monospace;font-size:12.5px;color:var(--text2);margin-bottom:8px}
+.api-method{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;
+  font-weight:700;letter-spacing:.05em;margin-right:8px}
+.m-post{background:var(--obg);color:var(--orange)}
+.m-get{background:var(--gbg);color:var(--green)}
+.api-desc{font-size:12px;color:var(--muted);margin-bottom:14px}
+.code-block{background:#1c1917;border-radius:9px;padding:16px 18px;
+  font-family:monospace;font-size:12px;color:#f0ece0;overflow-x:auto;margin-bottom:8px;line-height:1.7}
+.code-comment{color:#6b7280}
+.code-key{color:#f59e0b}
+.code-val{color:#86efac}
+.code-str{color:#93c5fd}
+
+@media(max-width:900px){
+  .results-grid{grid-template-columns:1fr}
+  .trip-form{grid-template-columns:1fr 1fr}
+  .vault-grid{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .sidebar{display:none}
+  .view-area{padding:16px}
+  .trip-form{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sid-brand">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#c2410c"/></svg>
+    <div class="sid-brand-name">John Travel</div>
+  </div>
+  <div class="sid-nav">
+    <span class="s-label">Book</span>
+    <button class="s-item" id="nav-book" onclick="showPanel('book',this)">New Trip</button>
+    <button class="s-item active" id="nav-setup" onclick="showPanel('setup',this)">First-Time Setup</button>
+
+    <span class="s-label">My Travel</span>
+    <button class="s-item" id="nav-history" onclick="showPanel('history',this)">Trip History<span class="s-badge">3</span></button>
+    <button class="s-item" id="nav-vault" onclick="showPanel('vault',this)">Saved Preferences</button>
+    <button class="s-item" id="nav-upcoming" onclick="showPanel('upcoming',this)">Upcoming Trips<span class="s-badge">1</span></button>
+
+    <span class="s-label">Developer</span>
+    <button class="s-item" id="nav-api" onclick="showPanel('api',this)">Backend API Contract</button>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <div class="tb-left">
+      <h2 id="topbar-title">First-Time Setup</h2>
+      <p id="topbar-sub">John needs a few things before he can book autonomously</p>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="tb-btn tb-ghost" onclick="window.close()">← Back to John</button>
+      <button class="tb-btn tb-primary" onclick="showPanel('book',null)">Book a Trip</button>
+    </div>
+  </div>
+
+  <div class="view-area">
+
+    <!-- ══ SETUP PANEL ══ -->
+    <div class="panel active" id="panel-setup">
+
+      <!-- Progress steps -->
+      <div class="setup-steps" id="setup-progress">
+        <div class="ss-step active" id="sp-1"><div class="ss-num">1</div><div class="ss-label">Preferences</div></div>
+        <div class="ss-step" id="sp-2"><div class="ss-num">2</div><div class="ss-label">Loyalty</div></div>
+        <div class="ss-step" id="sp-3"><div class="ss-num">3</div><div class="ss-label">Payment</div></div>
+        <div class="ss-step" id="sp-4"><div class="ss-num">4</div><div class="ss-label">Ready</div></div>
+      </div>
+
+      <!-- Step 1: Travel Preferences -->
+      <div class="setup-card">
+        <div class="sc-step active" id="sc-step-1">
+          <div class="sc-tag">Step 1 of 3 — Travel Preferences</div>
+          <div class="sc-title">How do you like to travel?</div>
+          <div class="sc-note">John uses this every time he searches for you — no need to repeat yourself on every booking.</div>
+
+          <div class="field-row">
+            <div class="field-box">
+              <div class="field-label">Preferred Seat</div>
+              <div class="pref-opts" id="seat-opts">
+                <button class="pref-opt" onclick="selPref(this,'seat')">Window</button>
+                <button class="pref-opt sel" onclick="selPref(this,'seat')">Aisle</button>
+                <button class="pref-opt" onclick="selPref(this,'seat')">No preference</button>
+              </div>
+            </div>
+            <div class="field-box">
+              <div class="field-label">Cabin Class</div>
+              <div class="pref-opts" id="cabin-opts">
+                <button class="pref-opt sel" onclick="selPref(this,'cabin')">Economy</button>
+                <button class="pref-opt" onclick="selPref(this,'cabin')">Premium Economy</button>
+                <button class="pref-opt" onclick="selPref(this,'cabin')">Business</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-row" style="margin-top:4px">
+            <div class="field-box">
+              <div class="field-label">Preferred Airlines (optional)</div>
+              <input class="field-input" id="pref-airlines" placeholder="e.g. Delta, Southwest" value="Delta, Southwest"/>
+            </div>
+            <div class="field-box">
+              <div class="field-label">Max Layovers</div>
+              <div class="pref-opts" id="layover-opts">
+                <button class="pref-opt sel" onclick="selPref(this,'layover')">Nonstop only</button>
+                <button class="pref-opt" onclick="selPref(this,'layover')">1 max</button>
+                <button class="pref-opt" onclick="selPref(this,'layover')">Any</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-row" style="margin-top:4px">
+            <div class="field-box">
+              <div class="field-label">Hotel Star Rating</div>
+              <div class="pref-opts" id="hotel-opts">
+                <button class="pref-opt" onclick="selPref(this,'hotel')">3 stars</button>
+                <button class="pref-opt sel" onclick="selPref(this,'hotel')">4 stars</button>
+                <button class="pref-opt" onclick="selPref(this,'hotel')">5 stars</button>
+              </div>
+            </div>
+            <div class="field-box">
+              <div class="field-label">Car Rental Preference</div>
+              <div class="pref-opts" id="car-opts">
+                <button class="pref-opt" onclick="selPref(this,'car')">Compact</button>
+                <button class="pref-opt" onclick="selPref(this,'car')">Midsize</button>
+                <button class="pref-opt sel" onclick="selPref(this,'car')">SUV</button>
+                <button class="pref-opt" onclick="selPref(this,'car')">None needed</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-row" style="margin-top:4px">
+            <div class="field-box">
+              <div class="field-label">Trip Budget (per trip, rough estimate)</div>
+              <div class="pref-opts" id="budget-opts">
+                <button class="pref-opt" onclick="selPref(this,'budget')">Under $500</button>
+                <button class="pref-opt sel" onclick="selPref(this,'budget')">$500–$1,000</button>
+                <button class="pref-opt" onclick="selPref(this,'budget')">$1,000–$2,000</button>
+                <button class="pref-opt" onclick="selPref(this,'budget')">No limit</button>
+              </div>
+            </div>
+            <div class="field-box">
+              <div class="field-label">Autonomous Booking</div>
+              <div class="pref-opts" id="auto-opts">
+                <button class="pref-opt sel" onclick="selPref(this,'auto')">Always confirm first</button>
+                <button class="pref-opt" onclick="selPref(this,'auto')">Auto-book best option</button>
+              </div>
+            </div>
+          </div>
+
+          <button class="setup-next" onclick="setupNext(1)">Continue — Loyalty Programs</button>
+        </div>
+
+        <!-- Step 2: Loyalty Programs -->
+        <div class="sc-step" id="sc-step-2">
+          <div class="sc-tag">Step 2 of 3 — Loyalty Programs</div>
+          <div class="sc-title">Your loyalty programs</div>
+          <div class="sc-note">John will always prioritize earning your miles and points. These are stored securely — John never shares them.</div>
+
+          <div class="field-row">
+            <div class="field-box">
+              <label class="field-label">Delta SkyMiles #</label>
+              <input class="field-input" id="l-delta" placeholder="SkyMiles number"/>
+            </div>
+            <div class="field-box">
+              <label class="field-label">Southwest Rapid Rewards #</label>
+              <input class="field-input" id="l-southwest" placeholder="Rapid Rewards number"/>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-box">
+              <label class="field-label">American AAdvantage #</label>
+              <input class="field-input" id="l-american" placeholder="AAdvantage number"/>
+            </div>
+            <div class="field-box">
+              <label class="field-label">United MileagePlus #</label>
+              <input class="field-input" id="l-united" placeholder="MileagePlus number"/>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-box">
+              <label class="field-label">Marriott Bonvoy #</label>
+              <input class="field-input" id="l-marriott" placeholder="Bonvoy number"/>
+            </div>
+            <div class="field-box">
+              <label class="field-label">Hilton Honors #</label>
+              <input class="field-input" id="l-hilton" placeholder="Honors number"/>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-box">
+              <label class="field-label">Enterprise Plus #</label>
+              <input class="field-input" id="l-enterprise" placeholder="Enterprise Plus number"/>
+            </div>
+            <div class="field-box">
+              <label class="field-label">TSA PreCheck / Global Entry</label>
+              <input class="field-input" id="l-tsa" placeholder="Known Traveler Number"/>
+            </div>
+          </div>
+
+          <button class="setup-next" onclick="setupNext(2)">Continue — Payment Method</button>
+          <span class="setup-skip" onclick="setupNext(2)">Skip — add loyalty programs later</span>
+        </div>
+
+        <!-- Step 3: Payment -->
+        <div class="sc-step" id="sc-step-3">
+          <div class="sc-tag">Step 3 of 3 — Payment Method</div>
+          <div class="sc-title">Secure payment setup</div>
+          <div class="sc-note">Your card is stored as a secure token through Stripe — John never sees your actual card number. This enables autonomous booking after you approve.</div>
+
+          <div class="field-row full">
+            <div class="field-box">
+              <label class="field-label">Cardholder Name</label>
+              <input class="field-input" id="pay-name" placeholder="Name on card"/>
+            </div>
+          </div>
+
+          <div class="field-label" style="margin-bottom:6px">Card Number</div>
+          <div class="stripe-field">
+            <input class="stripe-input" id="pay-card" placeholder="Card number" maxlength="19" oninput="fmtCard(this)"/>
+            <div class="card-brands">
+              <div class="card-brand">VISA</div>
+              <div class="card-brand">MC</div>
+              <div class="card-brand">AMEX</div>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field-box">
+              <label class="field-label">Expiry</label>
+              <input class="field-input" id="pay-exp" placeholder="MM / YY" maxlength="7" oninput="fmtExp(this)"/>
+            </div>
+            <div class="field-box">
+              <label class="field-label">CVC</label>
+              <input class="field-input" id="pay-cvc" placeholder="•••" maxlength="4" type="password"/>
+            </div>
+          </div>
+
+          <div class="secure-note">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Secured by Stripe · John stores a token only, never your card number · You approve every booking
+          </div>
+
+          <button class="setup-next" onclick="finishSetup()">Save & Activate Autonomous Booking</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ BOOKING PANEL ══ -->
+    <div class="panel" id="panel-book">
+
+      <!-- Autonomous mode toggle -->
+      <div class="auto-banner" id="auto-banner">
+        <div class="ab-info">
+          <div class="ab-title" id="auto-mode-label">Autonomous Mode: Confirm Before Booking</div>
+          <div class="ab-sub">John will present the best options and ask for your approval before charging anything</div>
+        </div>
+        <div class="auto-toggle">
+          <div class="at-label" id="auto-toggle-label">Auto-book</div>
+          <button class="toggle-btn" id="auto-toggle" onclick="toggleAutoMode()"></button>
+        </div>
+      </div>
+
+      <!-- Trip search form -->
+      <div class="trip-card">
+        <div class="tc-label">Where are you going?</div>
+        <div class="trip-form">
+          <div class="tf-box">
+            <div class="tf-label">Destination</div>
+            <input class="tf-input" id="dest" placeholder="City or airport (e.g. Atlanta, GA)"/>
+          </div>
+          <div class="tf-box">
+            <div class="tf-label">Depart</div>
+            <input class="tf-input" id="depart" type="date"/>
+          </div>
+          <div class="tf-box">
+            <div class="tf-label">Return</div>
+            <input class="tf-input" id="return" type="date"/>
+          </div>
+          <button class="search-btn" onclick="searchTrip()">Search</button>
+        </div>
+      </div>
+
+      <!-- Results (shown after search) -->
+      <div id="results-area" style="display:none">
+        <div class="results-grid">
+
+          <!-- Flights -->
+          <div class="result-section">
+            <div class="rs-title">Flights</div>
+
+            <div class="flight-card best-value" id="fl-1" onclick="selectFlight(1)">
+              <div class="fc-airline">Delta Air Lines</div>
+              <div class="fc-route">DAL → ATL · Nonstop</div>
+              <div class="fc-time">Depart 7:45 AM · Arrive 11:59 AM · 2h 14m</div>
+              <div class="fc-bottom">
+                <div><div class="fc-price">$187</div><div class="fc-stops">Nonstop</div></div>
+                <button class="fc-select-btn">Select</button>
+              </div>
+            </div>
+
+            <div class="flight-card" id="fl-2" onclick="selectFlight(2)">
+              <div class="fc-airline">Southwest Airlines</div>
+              <div class="fc-route">DAL → ATL · Nonstop</div>
+              <div class="fc-time">Depart 10:10 AM · Arrive 12:40 PM · 2h 30m</div>
+              <div class="fc-bottom">
+                <div><div class="fc-price">$214</div><div class="fc-stops">Nonstop</div></div>
+                <button class="fc-select-btn">Select</button>
+              </div>
+            </div>
+
+            <div class="flight-card" id="fl-3" onclick="selectFlight(3)">
+              <div class="fc-airline">American Airlines</div>
+              <div class="fc-route">DAL → ATL via CLT</div>
+              <div class="fc-time">Depart 6:00 AM · Arrive 9:45 AM · 3h 45m</div>
+              <div class="fc-bottom">
+                <div><div class="fc-price">$156</div><div class="fc-stops">1 stop</div></div>
+                <button class="fc-select-btn">Select</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hotels -->
+          <div class="result-section">
+            <div class="rs-title">Hotels</div>
+
+            <div class="hotel-card" id="ht-1" onclick="selectHotel(1)">
+              <div class="hc-name">Marriott Atlanta Downtown</div>
+              <div class="hc-stars">★★★★☆ · 4 stars</div>
+              <div class="hc-amenities">Free WiFi · Breakfast included · 0.4 mi from venue · Free cancel · Bonvoy points</div>
+              <div class="hc-bottom"><div><div class="hc-price">$142</div><div class="hc-per">per night</div></div><button class="fc-select-btn">Select</button></div>
+            </div>
+
+            <div class="hotel-card" id="ht-2" onclick="selectHotel(2)">
+              <div class="hc-name">Hilton Garden Inn Midtown</div>
+              <div class="hc-stars">★★★★☆ · 4 stars</div>
+              <div class="hc-amenities">Free parking · Pool · 0.9 mi from venue · Free cancel · Honors points</div>
+              <div class="hc-bottom"><div><div class="hc-price">$119</div><div class="hc-per">per night</div></div><button class="fc-select-btn">Select</button></div>
+            </div>
+
+            <div class="hotel-card" id="ht-3" onclick="selectHotel(3)">
+              <div class="hc-name">Hampton Inn Airport</div>
+              <div class="hc-stars">★★★☆☆ · 3 stars</div>
+              <div class="hc-amenities">Airport shuttle · Complimentary breakfast · Budget pick</div>
+              <div class="hc-bottom"><div><div class="hc-price">$98</div><div class="hc-per">per night</div></div><button class="fc-select-btn">Select</button></div>
+            </div>
+          </div>
+
+          <!-- Cars + Summary -->
+          <div class="result-section">
+            <div class="rs-title">Car Rental</div>
+
+            <div class="car-card" id="cr-1" onclick="selectCar(1)">
+              <div class="cc-name">Enterprise</div>
+              <div class="cc-type">Midsize SUV · Toyota RAV4 or similar</div>
+              <div class="cc-features">Unlimited miles · Airport pickup · Free cancel · Enterprise Plus points</div>
+              <div class="cc-price">$54/day</div>
+            </div>
+
+            <div class="car-card" id="cr-2" onclick="selectCar(2)">
+              <div class="cc-name">Hertz</div>
+              <div class="cc-type">Full-size Sedan · Toyota Camry or similar</div>
+              <div class="cc-features">Free cancel · Airport pickup · Gold Plus Rewards</div>
+              <div class="cc-price">$48/day</div>
+            </div>
+
+            <div style="height:14px"></div>
+
+            <!-- Summary sticks here -->
+            <div class="booking-summary">
+              <div class="bs-title">Booking Summary</div>
+              <div class="bs-line"><span class="bs-label">Flight</span><span id="sum-flight">Not selected</span></div>
+              <div class="bs-line"><span class="bs-label">Hotel</span><span id="sum-hotel">Not selected</span></div>
+              <div class="bs-line"><span class="bs-label">Car</span><span id="sum-car">Not selected</span></div>
+              <div class="bs-line"><span class="bs-label">Nights</span><span id="sum-nights">—</span></div>
+              <div class="bs-line total"><span>Estimated Total</span><span id="sum-total">—</span></div>
+              <button class="confirm-btn" id="confirm-btn" onclick="confirmBooking()" disabled>
+                Confirm Booking
+              </button>
+              <div class="auto-confirm-note" id="confirm-note">Select at least a flight to continue</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ CONFIRMATION PANEL ══ -->
+    <div class="panel" id="panel-confirm">
+      <div class="confirm-hero">
+        <div class="ch-circle">✓</div>
+        <div class="ch-title">Trip booked, Pastor.</div>
+        <div class="ch-sub">John has completed your booking. All confirmation numbers are below. A reminder will be sent 24 hours before your departure.</div>
+        <div class="conf-details">
+          <div class="cd-row"><span class="cd-label">Flight</span><span class="cd-val" id="cd-flight">Delta · DAL→ATL</span></div>
+          <div class="cd-row"><span class="cd-label">Confirmation</span><span class="cd-val" id="cd-flight-conf">DL-849201</span></div>
+          <div class="cd-row"><span class="cd-label">Hotel</span><span class="cd-val" id="cd-hotel">Marriott Downtown</span></div>
+          <div class="cd-row"><span class="cd-label">Confirmation</span><span class="cd-val" id="cd-hotel-conf">MBY-33921</span></div>
+          <div class="cd-row"><span class="cd-label">Car</span><span class="cd-val" id="cd-car">Enterprise · SUV</span></div>
+          <div class="cd-row"><span class="cd-label">Confirmation</span><span class="cd-val" id="cd-car-conf">ENT-110822</span></div>
+          <div class="cd-row"><span class="cd-label">Total Charged</span><span class="cd-val" id="cd-total">$583</span></div>
+        </div>
+        <div class="ch-actions">
+          <button class="ch-btn ch-primary" onclick="showPanel('upcoming',null)">View Upcoming Trips</button>
+          <button class="ch-btn ch-ghost" onclick="window.close()">Back to John</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ UPCOMING PANEL ══ -->
+    <div class="panel" id="panel-upcoming">
+      <div style="font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.02em;margin-bottom:16px">Upcoming Trips</div>
+      <div class="trip-history">
+        <div class="th-card">
+          <div class="th-icon">✈</div>
+          <div class="th-info">
+            <div class="th-title">AG District Ministers Conference — Atlanta, GA</div>
+            <div class="th-detail">Delta DAL→ATL · Nonstop · Departs 7:45 AM · Marriott Downtown · Enterprise SUV</div>
+            <div class="th-meta">May 24–27, 2025 · Booked by John · Total: $583</div>
+          </div>
+          <span class="th-status th-upcoming">Upcoming</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ HISTORY PANEL ══ -->
+    <div class="panel" id="panel-history">
+      <div style="font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.02em;margin-bottom:16px">Trip History</div>
+      <div class="trip-history">
+        <div class="th-card">
+          <div class="th-icon">✈</div>
+          <div class="th-info">
+            <div class="th-title">National AG General Council — Orlando, FL</div>
+            <div class="th-detail">Delta · Nonstop · Hilton Lake Buena Vista · Hertz Sedan</div>
+            <div class="th-meta">March 12–16, 2025 · Total: $1,240</div>
+          </div>
+          <span class="th-status th-past">Completed</span>
+        </div>
+        <div class="th-card">
+          <div class="th-icon">✈</div>
+          <div class="th-info">
+            <div class="th-title">Pastors Conference — Nashville, TN</div>
+            <div class="th-detail">Southwest · Nonstop · Marriott Nashville Downtown</div>
+            <div class="th-meta">January 8–10, 2025 · Total: $620</div>
+          </div>
+          <span class="th-status th-past">Completed</span>
+        </div>
+        <div class="th-card">
+          <div class="th-icon">✈</div>
+          <div class="th-info">
+            <div class="th-title">AG World Missions Summit — Springfield, MO</div>
+            <div class="th-detail">American · 1 stop · Hampton Inn Airport</div>
+            <div class="th-meta">November 5–7, 2024 · Total: $480</div>
+          </div>
+          <span class="th-status th-past">Completed</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ VAULT PANEL ══ -->
+    <div class="panel" id="panel-vault">
+      <div style="font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.02em;margin-bottom:16px">Saved Preferences</div>
+      <div class="vault-grid" id="vault-display"></div>
+    </div>
+
+    <!-- ══ API CONTRACT PANEL ══ -->
+    <div class="panel" id="panel-api">
+      <div style="font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.02em;margin-bottom:4px">Backend API Contract</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:22px">Hand this to your developer. These are the exact endpoints John will call — your backend implements them, John handles the UI and conversation layer.</div>
+
+      <div class="api-section">
+        <div class="api-title">Architecture Overview</div>
+        <div class="api-sub">John (frontend) ↔ Your Backend Server ↔ Travel APIs (Amadeus, Booking.com, Stripe)</div>
+        <div class="code-block"><span class="code-comment">// John never calls travel APIs directly
+// Your backend holds all API keys and payment tokens securely
+// John sends intent → backend executes → returns results
+
+</span><span class="code-key">Frontend (John)</span>  ──POST /api/search──▶  <span class="code-val">Your Backend</span>  ──▶  <span class="code-str">Amadeus Flight API</span>
+<span class="code-key">Frontend (John)</span>  ──POST /api/book──▶   <span class="code-val">Your Backend</span>  ──▶  <span class="code-str">Stripe + Airline API</span>
+<span class="code-key">Frontend (John)</span>  ──POST /api/vault──▶  <span class="code-val">Your Backend</span>  ──▶  <span class="code-str">Encrypted DB (Supabase)</span></div>
+      </div>
+
+      <div class="api-section">
+        <div class="api-title">1. Search Flights</div>
+        <div class="api-endpoint"><span class="api-method m-post">POST</span>/api/travel/search/flights</div>
+        <div class="code-block">{
+  <span class="code-key">"user_id"</span>: <span class="code-str">"pastor_abc123"</span>,
+  <span class="code-key">"origin"</span>: <span class="code-str">"DAL"</span>,
+  <span class="code-key">"destination"</span>: <span class="code-str">"ATL"</span>,
+  <span class="code-key">"depart_date"</span>: <span class="code-str">"2025-05-24"</span>,
+  <span class="code-key">"return_date"</span>: <span class="code-str">"2025-05-27"</span>,
+  <span class="code-key">"passengers"</span>: <span class="code-val">1</span>,
+  <span class="code-key">"cabin"</span>: <span class="code-str">"economy"</span>,
+  <span class="code-key">"max_stops"</span>: <span class="code-val">0</span>,
+  <span class="code-key">"preferred_airlines"</span>: [<span class="code-str">"DL"</span>, <span class="code-str">"WN"</span>]
+}
+
+<span class="code-comment">// Returns: array of flight options sorted by value score
+// Include: price, airline, times, stops, loyalty_points_earned, booking_token</span></div>
+      </div>
+
+      <div class="api-section">
+        <div class="api-title">2. Search Hotels</div>
+        <div class="api-endpoint"><span class="api-method m-post">POST</span>/api/travel/search/hotels</div>
+        <div class="code-block">{
+  <span class="code-key">"user_id"</span>: <span class="code-str">"pastor_abc123"</span>,
+  <span class="code-key">"city"</span>: <span class="code-str">"Atlanta, GA"</span>,
+  <span class="code-key">"check_in"</span>: <span class="code-str">"2025-05-24"</span>,
+  <span class="code-key">"check_out"</span>: <span class="code-str">"2025-05-27"</span>,
+  <span class="code-key">"star_rating_min"</span>: <span class="code-val">4</span>,
+  <span class="code-key">"preferred_chains"</span>: [<span class="code-str">"Marriott"</span>, <span class="code-str">"Hilton"</span>],
+  <span class="code-key">"max_distance_miles"</span>: <span class="code-val">1.0</span>,
+  <span class="code-key">"proximity_to"</span>: <span class="code-str">"Georgia World Congress Center"</span>
+}
+
+<span class="code-comment">// Returns: hotels with price/night, amenities, distance, loyalty_chain, booking_token</span></div>
+      </div>
+
+      <div class="api-section">
+        <div class="api-title">3. Confirm & Book (Autonomous)</div>
+        <div class="api-endpoint"><span class="api-method m-post">POST</span>/api/travel/book</div>
+        <div class="code-block">{
+  <span class="code-key">"user_id"</span>: <span class="code-str">"pastor_abc123"</span>,
+  <span class="code-key">"payment_token"</span>: <span class="code-str">"stripe_pm_xxxx"</span>,  <span class="code-comment">// Never raw card — always Stripe token</span>
+  <span class="code-key">"flight_token"</span>: <span class="code-str">"amadeus_offer_xxxx"</span>,
+  <span class="code-key">"hotel_token"</span>: <span class="code-str">"booking_prop_xxxx"</span>,
+  <span class="code-key">"car_token"</span>: <span class="code-str">"enterprise_rate_xxxx"</span>,
+  <span class="code-key">"autonomous"</span>: <span class="code-val">false</span>,  <span class="code-comment">// true = no confirmation UI needed</span>
+  <span class="code-key">"traveler"</span>: {
+    <span class="code-key">"name"</span>: <span class="code-str">"Pastor James Carter"</span>,
+    <span class="code-key">"email"</span>: <span class="code-str">"pastor@gracefellowship.com"</span>,
+    <span class="code-key">"tsa_number"</span>: <span class="code-str">"TSA-XXXXX"</span>
+  }
+}
+
+<span class="code-comment">// Returns: confirmation numbers for all booked items
+// Triggers: confirmation email to pastor, calendar invite, 24hr reminder notification</span></div>
+      </div>
+
+      <div class="api-section">
+        <div class="api-title">4. Save Preferences Vault</div>
+        <div class="api-endpoint"><span class="api-method m-post">POST</span>/api/travel/vault/save</div>
+        <div class="code-block">{
+  <span class="code-key">"user_id"</span>: <span class="code-str">"pastor_abc123"</span>,
+  <span class="code-key">"preferences"</span>: {
+    <span class="code-key">"seat"</span>: <span class="code-str">"aisle"</span>,
+    <span class="code-key">"cabin"</span>: <span class="code-str">"economy"</span>,
+    <span class="code-key">"max_stops"</span>: <span class="code-val">0</span>,
+    <span class="code-key">"hotel_stars"</span>: <span class="code-val">4</span>,
+    <span class="code-key">"car_type"</span>: <span class="code-str">"suv"</span>,
+    <span class="code-key">"budget_per_trip"</span>: <span class="code-str">"500-1000"</span>,
+    <span class="code-key">"autonomous_mode"</span>: <span class="code-val">false</span>
+  },
+  <span class="code-key">"loyalty"</span>: {
+    <span class="code-key">"delta_skymiles"</span>: <span class="code-str">"DL-XXXXXXX"</span>,
+    <span class="code-key">"marriott_bonvoy"</span>: <span class="code-str">"MB-XXXXXXX"</span>,
+    <span class="code-key">"tsa_precheck"</span>: <span class="code-str">"TSA-XXXXX"</span>
+  },
+  <span class="code-key">"payment_token"</span>: <span class="code-str">"stripe_pm_xxxx"</span>  <span class="code-comment">// Stripe SetupIntent token — NEVER raw card</span>
+}
+
+<span class="code-comment">// Encrypt loyalty numbers at rest — AES-256
+// Store payment_token in Stripe only — reference by token in your DB</span></div>
+      </div>
+
+      <div class="api-section">
+        <div class="api-title">Recommended APIs & Services</div>
+        <div class="code-block"><span class="code-comment">// Flights:      Amadeus for Developers (amadeus.com/en/developers)
+//               free tier: 2,000 calls/month
+//               production: usage-based pricing
+
+// Hotels:       Booking.com Affiliate API or Expedia Rapid API
+//               both offer revenue-share models
+
+// Car Rental:   Enterprise API or Rentalcars Connect API
+
+// Payments:     Stripe (stripe.com) — SetupIntents for saved cards
+//               PCI compliant, pastor never sees raw card in your DB
+
+// Database:     Supabase — store vaulted preferences, trip history, loyalty #s
+//               Row-level security ensures each pastor sees only their data
+
+// Notifications: Twilio (SMS) or web-push for booking confirmations + reminders
+
+// Estimated backend build time: 2–3 weeks for a competent developer
+// Stack recommendation: Node.js + Express + Supabase + Stripe</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script>
+// ── Panel routing ──
+const PANEL_META={
+  setup:{title:'First-Time Setup',sub:'John needs a few things before he can book autonomously'},
+  book:{title:'Book a Trip',sub:'Tell John where you\'re going'},
+  confirm:{title:'Booking Confirmed',sub:'All confirmation numbers saved'},
+  upcoming:{title:'Upcoming Trips',sub:'Your next adventure is ready'},
+  history:{title:'Trip History',sub:'Every trip John has booked for you'},
+  vault:{title:'Saved Preferences',sub:'Your travel profile — John uses this automatically'},
+  api:{title:'Backend API Contract',sub:'For your developer — the endpoints John will call'},
+};
+function showPanel(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  document.querySelectorAll('.s-item').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  else{const nb=document.getElementById('nav-'+id);if(nb)nb.classList.add('active')}
+  const m=PANEL_META[id]||{};
+  document.getElementById('topbar-title').textContent=m.title||'';
+  document.getElementById('topbar-sub').textContent=m.sub||'';
+  if(id==='vault')renderVault();
+}
+
+// ── Prefs storage ──
+let prefs={seat:'aisle',cabin:'economy',layover:'nonstop',hotel:'4star',car:'suv',budget:'500-1000',auto:'confirm'};
+let autoMode=false;
+
+function selPref(btn,group){
+  const parent=btn.parentElement;parent.querySelectorAll('.pref-opt').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');prefs[group]=btn.textContent.toLowerCase();
+}
+
+// ── Setup wizard ──
+let setupStep=1;
+function setupNext(step){
+  if(step===1){prefs.airlines=document.getElementById('pref-airlines').value;document.getElementById('sp-1').classList.remove('active');document.getElementById('sp-1').classList.add('done')}
+  if(step===2){document.getElementById('sp-2').classList.remove('active');document.getElementById('sp-2').classList.add('done')}
+  document.getElementById('sc-step-'+step).classList.remove('active');
+  document.getElementById('sc-step-'+(step+1)).classList.add('active');
+  document.getElementById('sp-'+(step+1)).classList.add('active');
+  setupStep=step+1;
+}
+async function finishSetup(){
+  const btn=document.querySelector('[onclick="finishSetup()"]');
+  btn.textContent='Saving securely…';btn.disabled=true;
+  // Simulate Stripe tokenization + save
+  await new Promise(r=>setTimeout(r,1400));
+  // Save to localStorage (in production: POST to /api/travel/vault/save)
+  const vault={
+    prefs,
+    loyalty:{delta:document.getElementById('l-delta').value,southwest:document.getElementById('l-southwest').value,marriott:document.getElementById('l-marriott').value,hilton:document.getElementById('l-hilton').value,tsa:document.getElementById('l-tsa').value},
+    payment:{last4:'4242',brand:'Visa',token:'stripe_pm_test_xxxx',name:document.getElementById('pay-name').value},
+    setupComplete:true,autoMode:false
+  };
+  localStorage.setItem('john_travel_vault',JSON.stringify(vault));
+  // Mark all steps done
+  ['sp-1','sp-2','sp-3'].forEach(id=>{const el=document.getElementById(id);el.classList.remove('active');el.classList.add('done')});
+  document.getElementById('sp-4').classList.add('active','done');
+  document.getElementById('sp-4').querySelector('.ss-num').textContent='✓';
+  btn.textContent='✓ Setup Complete';btn.style.background='#15803d';
+  setTimeout(()=>showPanel('book',document.getElementById('nav-book')),1200);
+}
+
+// ── Auto mode ──
+function toggleAutoMode(){
+  autoMode=!autoMode;
+  const t=document.getElementById('auto-toggle');const l=document.getElementById('auto-mode-label');const tl=document.getElementById('auto-toggle-label');
+  t.classList.toggle('on',autoMode);
+  if(autoMode){l.textContent='Autonomous Mode: Auto-Book Best Option';tl.textContent='Auto-book: ON'}
+  else{l.textContent='Autonomous Mode: Confirm Before Booking';tl.textContent='Auto-book: OFF'}
+}
+
+// ── Trip search ──
+async function searchTrip(){
+  const dest=document.getElementById('dest').value.trim();
+  if(!dest){document.getElementById('dest').focus();return}
+  const btn=document.querySelector('.search-btn');btn.textContent='Searching…';btn.disabled=true;
+  await new Promise(r=>setTimeout(r,900));
+  document.getElementById('results-area').style.display='block';
+  document.getElementById('results-area').scrollIntoView({behavior:'smooth'});
+  btn.textContent='Search';btn.disabled=false;
+}
+
+// ── Selection ──
+let sel={flight:null,hotel:null,car:null};
+const FLIGHT_DATA={1:{label:'Delta Nonstop',price:187,conf:'DL-849201'},2:{label:'Southwest Nonstop',price:214,conf:'SW-221031'},3:{label:'American 1-stop',price:156,conf:'AA-339210'}};
+const HOTEL_DATA={1:{label:'Marriott Downtown',price:142,conf:'MBY-33921'},2:{label:'Hilton Garden Inn',price:119,conf:'HLT-44102'},3:{label:'Hampton Inn Airport',price:98,conf:'HMP-55830'}};
+const CAR_DATA={1:{label:'Enterprise SUV',price:54,conf:'ENT-110822'},2:{label:'Hertz Sedan',price:48,conf:'HTZ-220911'}};
+
+function selectFlight(id){
+  document.querySelectorAll('.flight-card').forEach(c=>{c.classList.remove('selected');c.querySelector('.fc-select-btn').textContent='Select'});
+  const card=document.getElementById('fl-'+id);card.classList.add('selected');card.querySelector('.fc-select-btn').textContent='Selected';
+  sel.flight=id;updateSummary();
+}
+function selectHotel(id){
+  document.querySelectorAll('.hotel-card').forEach(c=>{c.classList.remove('selected');const b=c.querySelector('.fc-select-btn');if(b)b.textContent='Select'});
+  const card=document.getElementById('ht-'+id);card.classList.add('selected');const b=card.querySelector('.fc-select-btn');if(b)b.textContent='Selected';
+  sel.hotel=id;updateSummary();
+}
+function selectCar(id){
+  document.querySelectorAll('.car-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('cr-'+id).classList.add('selected');
+  sel.car=id;updateSummary();
+}
+
+function updateSummary(){
+  const dep=document.getElementById('depart').value;const ret=document.getElementById('return').value;
+  let nights=0;if(dep&&ret){const d1=new Date(dep+'T12:00:00');const d2=new Date(ret+'T12:00:00');nights=Math.max(0,Math.round((d2-d1)/86400000))}
+  const f=sel.flight?FLIGHT_DATA[sel.flight]:null;
+  const h=sel.hotel?HOTEL_DATA[sel.hotel]:null;
+  const c=sel.car?CAR_DATA[sel.car]:null;
+  document.getElementById('sum-flight').textContent=f?`${f.label} · $${f.price}`:'Not selected';
+  document.getElementById('sum-hotel').textContent=h?`${h.label} · $${h.price}/night`:'Not selected';
+  document.getElementById('sum-car').textContent=c?`${c.label} · $${c.price}/day`:'Not selected';
+  document.getElementById('sum-nights').textContent=nights?`${nights} nights`:'—';
+  if(f){
+    const flightTotal=f.price;
+    const hotelTotal=h?(h.price*Math.max(nights,1)):0;
+    const carTotal=c?(c.price*Math.max(nights,1)):0;
+    const total=flightTotal+hotelTotal+carTotal;
+    document.getElementById('sum-total').textContent=`~$${total.toLocaleString()}`;
+    const btn=document.getElementById('confirm-btn');btn.disabled=false;
+    const note=document.getElementById('confirm-note');
+    if(autoMode){btn.textContent='John will book automatically';note.textContent='Stored payment method will be charged upon confirmation'}
+    else{btn.textContent='Confirm Booking';note.textContent='Your saved card ending in 4242 will be charged'}
+  }
+}
+
+async function confirmBooking(){
+  const btn=document.getElementById('confirm-btn');
+  btn.textContent='Booking…';btn.disabled=true;
+  await new Promise(r=>setTimeout(r,1600));
+  // In production: POST to /api/travel/book with all tokens
+  // Update confirmation panel
+  const f=sel.flight?FLIGHT_DATA[sel.flight]:null;
+  const h=sel.hotel?HOTEL_DATA[sel.hotel]:null;
+  const c=sel.car?CAR_DATA[sel.car]:null;
+  const dep=document.getElementById('depart').value;const ret=document.getElementById('return').value;
+  const nights=dep&&ret?Math.max(0,Math.round((new Date(ret+'T12:00:00')-new Date(dep+'T12:00:00'))/86400000)):1;
+  const total=(f?f.price:0)+(h?h.price*nights:0)+(c?c.price*nights:0);
+  if(f){document.getElementById('cd-flight').textContent=f.label;document.getElementById('cd-flight-conf').textContent=f.conf}
+  if(h){document.getElementById('cd-hotel').textContent=h.label;document.getElementById('cd-hotel-conf').textContent=h.conf}
+  if(c){document.getElementById('cd-car').textContent=c.label;document.getElementById('cd-car-conf').textContent=c.conf}
+  document.getElementById('cd-total').textContent=`$${total.toLocaleString()}`;
+  showPanel('confirm',null);
+}
+
+// ── Vault display ──
+function renderVault(){
+  const raw=localStorage.getItem('john_travel_vault');
+  if(!raw){document.getElementById('vault-display').innerHTML='<div style="font-size:13px;color:var(--muted)">No preferences saved yet. Complete setup first.</div>';return}
+  const v=JSON.parse(raw);
+  document.getElementById('vault-display').innerHTML=`
+    <div class="vault-card">
+      <div class="vc-title">Travel Preferences</div>
+      <div class="vc-row"><span class="vc-label">Seat</span><span class="vc-val">${v.prefs?.seat||'—'}</span></div>
+      <div class="vc-row"><span class="vc-label">Cabin</span><span class="vc-val">${v.prefs?.cabin||'—'}</span></div>
+      <div class="vc-row"><span class="vc-label">Max Stops</span><span class="vc-val">${v.prefs?.layover||'—'}</span></div>
+      <div class="vc-row"><span class="vc-label">Hotel Stars</span><span class="vc-val">${v.prefs?.hotel||'—'}</span></div>
+      <div class="vc-row"><span class="vc-label">Car Type</span><span class="vc-val">${v.prefs?.car||'—'}</span></div>
+      <div class="vc-row"><span class="vc-label">Budget / Trip</span><span class="vc-val">${v.prefs?.budget||'—'}</span></div>
+      <div class="vc-row"><span class="vc-label">Auto-Book</span><span class="vc-val">${v.autoMode?'Enabled':'Confirm first'}</span></div>
+      <button class="edit-btn" onclick="showPanel('setup',document.getElementById('nav-setup'))">Edit Preferences</button>
+    </div>
+    <div class="vault-card">
+      <div class="vc-title">Loyalty Programs</div>
+      <div class="vc-row"><span class="vc-label">Delta SkyMiles</span><span class="vc-val">${v.loyalty?.delta||'Not saved'}</span></div>
+      <div class="vc-row"><span class="vc-label">Southwest</span><span class="vc-val">${v.loyalty?.southwest||'Not saved'}</span></div>
+      <div class="vc-row"><span class="vc-label">Marriott Bonvoy</span><span class="vc-val">${v.loyalty?.marriott||'Not saved'}</span></div>
+      <div class="vc-row"><span class="vc-label">Hilton Honors</span><span class="vc-val">${v.loyalty?.hilton||'Not saved'}</span></div>
+      <div class="vc-row"><span class="vc-label">TSA PreCheck</span><span class="vc-val">${v.loyalty?.tsa||'Not saved'}</span></div>
+      <button class="edit-btn" onclick="showPanel('setup',document.getElementById('nav-setup'))">Update Loyalty</button>
+    </div>
+    <div class="vault-card">
+      <div class="vc-title">Payment Method</div>
+      <div class="vc-row"><span class="vc-label">Card</span><span class="vc-val">${v.payment?.brand||'Visa'} •••• ${v.payment?.last4||'4242'}</span></div>
+      <div class="vc-row"><span class="vc-label">Name</span><span class="vc-val">${v.payment?.name||'—'}</span></div>
+      <div class="vc-row"><span class="vc-label">Token</span><span class="vc-val" style="font-size:11px;color:var(--green)">Secured by Stripe</span></div>
+      <button class="edit-btn" onclick="showPanel('setup',document.getElementById('nav-setup'))">Update Card</button>
+    </div>
+    <div class="vault-card">
+      <div class="vc-title">Preferred Airlines</div>
+      <div class="vc-row"><span class="vc-label">Airlines</span><span class="vc-val">${v.prefs?.airlines||'Any'}</span></div>
+      <div class="vc-row"><span class="vc-label">Autonomous</span><span class="vc-val">${v.setupComplete?'✓ Active':'Not set up'}</span></div>
+      <div class="vc-row"><span class="vc-label">Ready</span><span class="vc-val" style="color:var(--green)">${v.setupComplete?'John can book':'Setup required'}</span></div>
+    </div>`;
+}
+
+// ── Card formatters ──
+function fmtCard(i){let v=i.value.replace(/\D/g,'').substring(0,16);i.value=v.replace(/(.{4})/g,'$1 ').trim()}
+function fmtExp(i){let v=i.value.replace(/\D/g,'').substring(0,4);if(v.length>=2)v=v.slice(0,2)+' / '+v.slice(2);i.value=v}
+
+// ── Init ──
+const vault=localStorage.getItem('john_travel_vault');
+if(vault){
+  showPanel('book',document.getElementById('nav-book'));
+  document.getElementById('nav-setup').classList.remove('active');
+  document.getElementById('nav-book').classList.add('active');
+}
+</script>
+</body>
+</html>

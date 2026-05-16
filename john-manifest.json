@@ -1,0 +1,120 @@
+{
+  "name": "John — Pastoral Assistant",
+  "short_name": "John",
+  "description": "Your AI-powered pastoral assistant. Sermon prep, member care, prayer tracking, travel, and more.",
+  "start_url": "/john-mobile.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fcfaf6",
+  "theme_color": "#fcfaf6",
+  "lang": "en",
+  "categories": ["productivity", "utilities", "lifestyle"],
+
+  "icons": [
+    {
+      "src": "john-icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "john-icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "john-icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "john-icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "john-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "john-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+
+  "screenshots": [
+    {
+      "src": "john-screenshot-home.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "John Home Screen"
+    },
+    {
+      "src": "john-screenshot-chat.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Chat with John"
+    }
+  ],
+
+  "shortcuts": [
+    {
+      "name": "Ask John",
+      "short_name": "Ask",
+      "description": "Start a new conversation with John",
+      "url": "/john-mobile.html?action=chat",
+      "icons": [{ "src": "john-icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Prayer Requests",
+      "short_name": "Prayer",
+      "description": "Review prayer requests and emergencies",
+      "url": "/john-mobile.html?action=prayer",
+      "icons": [{ "src": "john-icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Sunday Report",
+      "short_name": "Report",
+      "description": "View this week's Sunday report",
+      "url": "/john-mobile.html?action=report",
+      "icons": [{ "src": "john-icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Member Database",
+      "short_name": "Members",
+      "description": "Search and manage your congregation",
+      "url": "/john-mobile.html?action=members",
+      "icons": [{ "src": "john-icon-96.png", "sizes": "96x96" }]
+    }
+  ],
+
+  "share_target": {
+    "action": "/john-mobile.html",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+
+  "related_applications": [],
+  "prefer_related_applications": false,
+
+  "protocol_handlers": [
+    {
+      "protocol": "web+john",
+      "url": "/john-mobile.html?intent=%s"
+    }
+  ]
+}
