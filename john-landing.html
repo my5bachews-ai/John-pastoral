@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="John is your AI-powered pastoral assistant — built for pastors leading mid-size to large congregations. Sermon prep, member care, administration, and more.">
+<title>John — Your Pastoral Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#fdf8f0;
+  --cream2:#f5ede0;
+  --warm:#e8d9c4;
+  --surface:#ffffff;
+  --text:#1a1410;
+  --text2:#4a3f35;
+  --muted:#9a8a7a;
+  --orange:#c2410c;
+  --orange2:#a33509;
+  --orange-light:#f97316;
+  --gold:#b8860b;
+  --border:rgba(194,65,12,0.12);
+  --border2:rgba(26,20,16,0.1);
+}
+
+html{scroll-behavior:smooth}
+body{
+  background:var(--cream);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  font-size:16px;
+  line-height:1.6;
+  overflow-x:hidden;
+}
+
+/* ── Grain overlay ── */
+body::before{
+  content:'';
+  position:fixed;inset:0;z-index:1000;
+  pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity:.4;
+}
+
+/* ── Nav ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:500;
+  padding:18px 48px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(253,248,240,0.88);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border2);
+  transition:all .3s;
+}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.nav-heart{color:var(--orange);font-size:18px}
+.nav-name{
+  font-family:'Playfair Display',serif;
+  font-size:20px;font-weight:700;color:var(--text);letter-spacing:-.02em
+}
+.nav-links{display:flex;align-items:center;gap:32px}
+.nav-link{
+  font-size:14px;font-weight:500;color:var(--text2);
+  text-decoration:none;transition:color .2s
+}
+.nav-link:hover{color:var(--orange)}
+.nav-cta{
+  padding:9px 22px;background:var(--orange);border:none;border-radius:6px;
+  color:white;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;
+  cursor:pointer;text-decoration:none;transition:all .2s
+}
+.nav-cta:hover{background:var(--orange2);transform:translateY(-1px)}
+
+/* ── Hero ── */
+.hero{
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding:120px 24px 80px;
+  position:relative;overflow:hidden;
+}
+.hero-bg{
+  position:absolute;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(194,65,12,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 85% 80%, rgba(184,134,11,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 30% 30% at 10% 60%, rgba(194,65,12,0.04) 0%, transparent 60%);
+}
+/* Decorative cross marks */
+.hero-bg::before{
+  content:'+  +  +  +  +  +  +  +  +  +  +  +  +  +  +  +';
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  font-size:18px;color:rgba(194,65,12,0.06);
+  letter-spacing:48px;line-height:64px;
+  word-break:break-all;overflow:hidden;
+}
+
+.hero-inner{
+  max-width:860px;text-align:center;position:relative;z-index:1;
+}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 16px;
+  background:rgba(194,65,12,0.08);
+  border:1px solid rgba(194,65,12,0.18);
+  border-radius:100px;
+  font-size:12.5px;font-weight:600;color:var(--orange);
+  letter-spacing:.08em;text-transform:uppercase;
+  margin-bottom:28px;
+  animation:fadeUp .6s ease both;
+}
+.hero-eyebrow-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--orange);animation:pulse 2s infinite
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+
+.hero-h1{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(42px,7vw,82px);
+  font-weight:700;
+  color:var(--text);
+  line-height:1.08;
+  letter-spacing:-.03em;
+  margin-bottom:24px;
+  animation:fadeUp .7s ease .1s both;
+}
+.hero-h1 em{
+  font-style:italic;color:var(--orange);
+}
+
+.hero-sub{
+  font-size:clamp(16px,2vw,20px);
+  color:var(--text2);
+  line-height:1.7;
+  max-width:620px;
+  margin:0 auto 44px;
+  font-weight:400;
+  animation:fadeUp .7s ease .2s both;
+}
+.hero-sub strong{color:var(--text);font-weight:600}
+
+/* Waitlist form */
+.hero-form{
+  display:flex;gap:10px;max-width:500px;margin:0 auto 20px;
+  animation:fadeUp .7s ease .3s both;
+}
+.hero-input{
+  flex:1;padding:14px 18px;
+  background:var(--surface);
+  border:1.5px solid var(--border2);
+  border-radius:8px;
+  font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);
+  outline:none;transition:border-color .2s;
+}
+.hero-input:focus{border-color:var(--orange)}
+.hero-input::placeholder{color:var(--muted)}
+.hero-btn{
+  padding:14px 28px;background:var(--orange);border:none;border-radius:8px;
+  color:white;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;
+  cursor:pointer;transition:all .2s;white-space:nowrap
+}
+.hero-btn:hover{background:var(--orange2);transform:translateY(-1px);box-shadow:0 8px 24px rgba(194,65,12,0.28)}
+.hero-note{
+  font-size:13px;color:var(--muted);
+  animation:fadeUp .7s ease .4s both;
+}
+.hero-note span{color:var(--orange);font-weight:500}
+
+/* Success state */
+.hero-success{
+  display:none;padding:14px 22px;
+  background:rgba(21,128,61,0.08);border:1px solid rgba(21,128,61,0.2);
+  border-radius:8px;color:#15803d;font-weight:500;font-size:15px;
+  max-width:500px;margin:0 auto;
+}
+
+/* Scroll indicator */
+.scroll-hint{
+  position:absolute;bottom:32px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  color:var(--muted);font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+  animation:fadeUp .7s ease .8s both;
+}
+.scroll-line{
+  width:1px;height:32px;background:linear-gradient(to bottom,var(--orange),transparent);
+  animation:scrollLine 1.8s ease infinite;
+}
+@keyframes scrollLine{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform:scaleY(1);transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+/* ── Monday morning section ── */
+.monday{
+  padding:100px 24px;
+  background:var(--text);
+  position:relative;overflow:hidden;
+}
+.monday::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 50% at 50% 100%,rgba(194,65,12,0.15),transparent);
+}
+.monday-inner{max-width:900px;margin:0 auto;text-align:center;position:relative}
+.section-label{
+  font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--orange);margin-bottom:16px
+}
+.monday-h2{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(30px,5vw,52px);
+  font-weight:600;color:white;
+  line-height:1.15;letter-spacing:-.02em;margin-bottom:24px;
+}
+.monday-h2 em{font-style:italic;color:rgba(255,255,255,0.6)}
+.monday-p{
+  font-size:18px;color:rgba(255,255,255,0.65);
+  line-height:1.75;max-width:680px;margin:0 auto 48px
+}
+.monday-list{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:1px;background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.06);border-radius:12px;overflow:hidden;
+  text-align:left;
+}
+.ml-item{
+  padding:24px 26px;background:rgba(255,255,255,0.03);
+  transition:background .2s;
+}
+.ml-item:hover{background:rgba(255,255,255,0.06)}
+.ml-num{
+  font-family:'Playfair Display',serif;
+  font-size:32px;font-weight:700;color:rgba(194,65,12,0.4);
+  line-height:1;margin-bottom:10px;
+}
+.ml-text{font-size:14.5px;color:rgba(255,255,255,0.7);line-height:1.6}
+
+/* ── What John does ── */
+.capabilities{padding:100px 24px;background:var(--cream)}
+.cap-inner{max-width:1080px;margin:0 auto}
+.cap-header{text-align:center;margin-bottom:64px}
+.cap-h2{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(30px,5vw,52px);
+  font-weight:700;color:var(--text);
+  line-height:1.12;letter-spacing:-.03em;margin-bottom:16px
+}
+.cap-sub{font-size:17px;color:var(--text2);max-width:560px;margin:0 auto}
+
+.cap-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));
+  gap:14px;
+}
+.cap-card{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:14px;padding:28px 30px;
+  transition:all .22s;cursor:default;
+  position:relative;overflow:hidden;
+}
+.cap-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(194,65,12,0.04),transparent);
+  opacity:0;transition:opacity .22s;
+}
+.cap-card:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,0.08);border-color:rgba(194,65,12,0.2)}
+.cap-card:hover::before{opacity:1}
+.cap-title{
+  font-family:'Playfair Display',serif;
+  font-size:19px;font-weight:600;color:var(--text);
+  margin-bottom:10px;line-height:1.3
+}
+.cap-desc{font-size:14px;color:var(--text2);line-height:1.7}
+.cap-tag{
+  display:inline-block;margin-top:14px;
+  font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--orange);
+}
+
+/* ── How it works ── */
+.how{padding:100px 24px;background:var(--cream2)}
+.how-inner{max-width:860px;margin:0 auto}
+.how-header{text-align:center;margin-bottom:60px}
+.how-h2{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(28px,4.5vw,48px);
+  font-weight:700;color:var(--text);letter-spacing:-.03em;margin-bottom:14px
+}
+.how-sub{font-size:16px;color:var(--text2)}
+.how-steps{display:flex;flex-direction:column;gap:0}
+.how-step{
+  display:flex;gap:28px;padding:32px 0;
+  border-bottom:1px solid var(--border2);
+  position:relative;
+}
+.how-step:last-child{border:none}
+.how-num{
+  font-family:'Playfair Display',serif;
+  font-size:42px;font-weight:700;
+  color:rgba(194,65,12,0.15);line-height:1;
+  flex-shrink:0;width:52px;text-align:right;padding-top:4px
+}
+.how-content{}
+.how-title{
+  font-family:'Playfair Display',serif;
+  font-size:21px;font-weight:600;color:var(--text);margin-bottom:8px
+}
+.how-desc{font-size:15px;color:var(--text2);line-height:1.7}
+
+/* ── Quote ── */
+.quote-section{
+  padding:80px 24px;
+  background:var(--orange);
+  text-align:center;position:relative;overflow:hidden
+}
+.quote-section::before{
+  content:'"';
+  position:absolute;top:-20px;left:50%;transform:translateX(-50%);
+  font-family:'Playfair Display',serif;
+  font-size:300px;color:rgba(255,255,255,0.06);line-height:1;
+  pointer-events:none;
+}
+.quote-inner{max-width:720px;margin:0 auto;position:relative}
+.quote-text{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(22px,3.5vw,36px);
+  font-weight:400;font-style:italic;
+  color:white;line-height:1.45;margin-bottom:22px
+}
+.quote-attr{
+  font-size:13.5px;color:rgba(255,255,255,0.7);
+  letter-spacing:.04em;font-weight:500
+}
+
+/* ── Pricing ── */
+.pricing{padding:100px 24px;background:var(--cream)}
+.pricing-inner{max-width:780px;margin:0 auto}
+.pricing-header{text-align:center;margin-bottom:48px}
+.pricing-h2{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(28px,4.5vw,48px);
+  font-weight:700;color:var(--text);letter-spacing:-.03em;margin-bottom:12px
+}
+.pricing-sub{font-size:16px;color:var(--text2)}
+
+.price-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.price-card{
+  background:var(--surface);border:1.5px solid var(--border2);
+  border-radius:14px;padding:32px 30px;position:relative;
+}
+.price-card.featured{
+  border-color:var(--orange);
+  background:linear-gradient(135deg,rgba(194,65,12,0.03),rgba(194,65,12,0.01));
+}
+.price-badge{
+  position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+  background:var(--orange);color:white;
+  font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  padding:4px 14px;border-radius:100px;white-space:nowrap
+}
+.price-tier{
+  font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:8px
+}
+.price-amount{
+  font-family:'Playfair Display',serif;
+  font-size:48px;font-weight:700;color:var(--text);line-height:1;
+  margin-bottom:4px
+}
+.price-amount span{font-size:20px;font-weight:400;color:var(--muted)}
+.price-period{font-size:13px;color:var(--muted);margin-bottom:20px}
+.price-desc{font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:22px}
+.price-features{list-style:none;display:flex;flex-direction:column;gap:9px;margin-bottom:28px}
+.price-features li{
+  font-size:13.5px;color:var(--text2);
+  display:flex;align-items:flex-start;gap:9px;line-height:1.4
+}
+.price-features li::before{content:'✓';color:var(--orange);font-weight:700;flex-shrink:0}
+.price-btn{
+  width:100%;padding:12px;border-radius:8px;
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;
+  cursor:pointer;transition:all .2s;text-align:center;
+}
+.price-btn.primary{background:var(--orange);border:none;color:white}
+.price-btn.primary:hover{background:var(--orange2);transform:translateY(-1px)}
+.price-btn.ghost{background:transparent;border:1.5px solid var(--border2);color:var(--text2)}
+.price-btn.ghost:hover{border-color:var(--orange);color:var(--orange)}
+
+/* ── Final CTA ── */
+.final-cta{
+  padding:120px 24px;
+  background:var(--text);
+  text-align:center;position:relative;overflow:hidden
+}
+.final-cta::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 70% 60% at 50% 50%,rgba(194,65,12,0.12),transparent);
+}
+.final-inner{max-width:680px;margin:0 auto;position:relative}
+.final-h2{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(32px,5.5vw,60px);
+  font-weight:700;color:white;
+  line-height:1.1;letter-spacing:-.03em;margin-bottom:18px
+}
+.final-h2 em{font-style:italic;color:rgba(194,65,12,0.8)}
+.final-p{font-size:17px;color:rgba(255,255,255,0.6);margin-bottom:40px;line-height:1.7}
+.final-form{display:flex;gap:10px;max-width:460px;margin:0 auto 16px}
+.final-input{
+  flex:1;padding:14px 18px;
+  background:rgba(255,255,255,0.08);
+  border:1.5px solid rgba(255,255,255,0.14);
+  border-radius:8px;
+  font-family:'DM Sans',sans-serif;font-size:15px;color:white;
+  outline:none;transition:border-color .2s;
+}
+.final-input:focus{border-color:rgba(194,65,12,0.6)}
+.final-input::placeholder{color:rgba(255,255,255,0.35)}
+.final-btn{
+  padding:14px 26px;background:var(--orange);border:none;border-radius:8px;
+  color:white;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;
+  cursor:pointer;transition:all .2s;white-space:nowrap
+}
+.final-btn:hover{background:var(--orange2);transform:translateY(-1px)}
+.final-note{font-size:13px;color:rgba(255,255,255,0.35)}
+.final-success{
+  display:none;padding:14px 22px;
+  background:rgba(21,128,61,0.15);border:1px solid rgba(21,128,61,0.3);
+  border-radius:8px;color:#4ade80;font-weight:500;font-size:15px;
+  max-width:460px;margin:0 auto;
+}
+
+/* ── Footer ── */
+footer{
+  padding:32px 48px;
+  border-top:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--cream);
+}
+.footer-brand{display:flex;align-items:center;gap:8px}
+.footer-name{
+  font-family:'Playfair Display',serif;font-weight:600;color:var(--text);font-size:16px
+}
+.footer-copy{font-size:13px;color:var(--muted)}
+
+/* ── Animations ── */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .65s ease,transform .65s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+@media(max-width:960px){.price-grid{grid-template-columns:1fr}}
+@media(max-width:700px){
+  nav{padding:14px 20px}
+  .nav-links{display:none}
+  .hero-form,.final-form{flex-direction:column}
+  .hero-btn,.final-btn{width:100%}
+  .price-grid{grid-template-columns:1fr}
+  footer{flex-direction:column;gap:8px;text-align:center;padding:24px}
+  .monday-list{grid-template-columns:1fr}
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="john-supabase.js"></script>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <a class="nav-brand" href="#">
+    <span class="nav-heart">♥</span>
+    <span class="nav-name">John</span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="#capabilities">What John Does</a>
+    <a class="nav-link" href="#how">How It Works</a>
+    <a class="nav-link" href="#pricing">Pricing</a>
+    <a class="nav-cta" href="#waitlist">Join Waitlist</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero" id="waitlist">
+  <div class="hero-bg"></div>
+  <div class="hero-inner">
+    <div class="hero-eyebrow">
+      <div class="hero-eyebrow-dot"></div>
+      Pastoral AI · Now in Early Access
+    </div>
+
+    <h1 class="hero-h1">
+      Meet John.<br>
+      Your <em>pastoral assistant</em><br>
+      who never sleeps.
+    </h1>
+
+    <p class="hero-sub">
+      John is a <strong>Ph.D.-level AI pastoral companion</strong> built for pastors leading 
+      mid-size to large congregations. Sermon prep. Member care. Administration. 
+      Staff coordination. Emergency response. All before your first cup of coffee.
+    </p>
+
+    <form class="hero-form" onsubmit="submitWaitlist(event,'hero')">
+      <input class="hero-input" type="email" id="hero-email" placeholder="Your email address" required />
+      <button class="hero-btn" type="submit">Join the Waitlist</button>
+    </form>
+    <div class="hero-success" id="hero-success">
+      You're on the list. We'll be in touch personally — not a mass email.
+    </div>
+    <p class="hero-note">Free 14-day trial · <span>No card required</span> · Cancel anytime</p>
+  </div>
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    Scroll
+  </div>
+</section>
+
+<!-- Monday Morning -->
+<section class="monday">
+  <div class="monday-inner">
+    <div class="section-label reveal">The Problem</div>
+    <h2 class="monday-h2 reveal">
+      Monday morning lands<br>
+      <em>before you're ready.</em>
+    </h2>
+    <p class="monday-p reveal">
+      Two emergency prayer requests. A sermon that isn't finished. Staff needing direction. 
+      A newcomer who visited Sunday and hasn't heard from you. And it's 6 AM.
+      You became a pastor to lead people — not to manage an impossible to-do list.
+    </p>
+    <div class="monday-list reveal">
+      <div class="ml-item">
+        <div class="ml-num">01</div>
+        <div class="ml-text">Hospital visits to prepare for, crises to respond to, and no time to think</div>
+      </div>
+      <div class="ml-item">
+        <div class="ml-num">02</div>
+        <div class="ml-text">Sermons that need hours of research you don't have on a Tuesday</div>
+      </div>
+      <div class="ml-item">
+        <div class="ml-num">03</div>
+        <div class="ml-text">New converts who need follow-up before they quietly walk away</div>
+      </div>
+      <div class="ml-item">
+        <div class="ml-num">04</div>
+        <div class="ml-text">Staff who need leadership and coordination while you're in back-to-back meetings</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Capabilities -->
+<section class="capabilities" id="capabilities">
+  <div class="cap-inner">
+    <div class="cap-header">
+      <div class="section-label reveal">What John Does</div>
+      <h2 class="cap-h2 reveal">Everything a great<br>associate pastor would do.</h2>
+      <p class="cap-sub reveal">John doesn't give you generic AI responses. He knows your church, your people, your theology — and acts accordingly.</p>
+    </div>
+    <div class="cap-grid">
+
+      <div class="cap-card reveal">
+        <div class="cap-title">Sermon Preparation</div>
+        <div class="cap-desc">Full expository, topical, and narrative outlines. Scripture chains, illustrations, application points, altar call frameworks, and 4–12 week series planning — built around your theology.</div>
+        <div class="cap-tag">Preaching & Teaching</div>
+      </div>
+
+      <div class="cap-card reveal">
+        <div class="cap-title">Prayer & Pastoral Care</div>
+        <div class="cap-desc">Emergency prayer triage, hospital visit preparation, grief care plans, counseling conversation frameworks, newcomer follow-up sequences, and compassionate member messaging — all drafted for you.</div>
+        <div class="cap-tag">Member Care</div>
+      </div>
+
+      <div class="cap-card reveal">
+        <div class="cap-title">Staff Encouragement</div>
+        <div class="cap-desc">Every morning at 6:30 AM, John drafts a fresh, Spirit-led word and delivers it to your entire team automatically. Because your staff deserves a pastor too.</div>
+        <div class="cap-tag">Team Leadership</div>
+      </div>
+
+      <div class="cap-card reveal">
+        <div class="cap-title">Church Administration</div>
+        <div class="cap-desc">Staff calendars, board reports, meeting agendas, stewardship letters, ministry reports, event timelines, capital campaign materials, and annual narratives — handled like a professional administrator.</div>
+        <div class="cap-tag">Operations</div>
+      </div>
+
+      <div class="cap-card reveal">
+        <div class="cap-title">Member Database</div>
+        <div class="cap-desc">Track your congregation by name — salvation dates, prayer requests, milestones, notes. Ask John about any member and he'll tell you exactly how to follow up and what they need right now.</div>
+        <div class="cap-tag">Congregation</div>
+      </div>
+
+      <div class="cap-card reveal">
+        <div class="cap-title">Ministry Travel</div>
+        <div class="cap-desc">John learns your travel preferences, loyalty programs, and budget — then books flights, hotels, and rental cars for ministry trips autonomously once you give the green light.</div>
+        <div class="cap-tag">Travel Booking</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section class="how" id="how">
+  <div class="how-inner">
+    <div class="how-header">
+      <div class="section-label reveal">How It Works</div>
+      <h2 class="how-h2 reveal">John meets you where you are.</h2>
+      <p class="how-sub reveal">No learning curve. No complicated setup. Just talk.</p>
+    </div>
+    <div class="how-steps">
+      <div class="how-step reveal">
+        <div class="how-num">1</div>
+        <div class="how-content">
+          <div class="how-title">Tell John about your church</div>
+          <div class="how-desc">In four simple questions, John learns your name, your church, your denomination, and your congregation size. From that moment, everything he produces is specific to you — not generic.</div>
+        </div>
+      </div>
+      <div class="how-step reveal">
+        <div class="how-num">2</div>
+        <div class="how-content">
+          <div class="how-title">Just talk — or say "Hey John"</div>
+          <div class="how-desc">Type or speak. John's always-on wake word means you can walk through your office and say "Hey John, prepare me for Gloria Martinez's hospital visit" — and he's already thinking. He speaks back, you keep moving.</div>
+        </div>
+      </div>
+      <div class="how-step reveal">
+        <div class="how-num">3</div>
+        <div class="how-content">
+          <div class="how-title">John anticipates what comes next</div>
+          <div class="how-desc">After every response, John surfaces what a seasoned pastoral advisor would suggest next. Finished a sermon outline? He asks about your altar call strategy. New convert? He connects them to your discipleship sequence automatically.</div>
+        </div>
+      </div>
+      <div class="how-step reveal">
+        <div class="how-num">4</div>
+        <div class="how-content">
+          <div class="how-title">Your whole team benefits</div>
+          <div class="how-desc">Add up to 5 staff members on the Pro plan. Each has their own role-based access. John coordinates encouragement, prayer reports, and Sunday briefings across your entire team — automatically.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Quote -->
+<section class="quote-section">
+  <div class="quote-inner">
+    <p class="quote-text">
+      "You didn't sign up for ministry because it was easy. You signed up because something inside you said this matters. It still does."
+    </p>
+    <div class="quote-attr">— John, 6:30 AM · Daily Staff Encouragement</div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section class="pricing" id="pricing">
+  <div class="pricing-inner">
+    <div class="pricing-header">
+      <div class="section-label reveal">Pricing</div>
+      <h2 class="pricing-h2 reveal">Simple. Pastoral. Fair.</h2>
+      <p class="pricing-sub reveal">No complicated tiers. No per-seat pricing. Just John — at a price that respects ministry budgets.</p>
+    </div>
+    <div class="price-grid reveal">
+
+      <div class="price-card">
+        <div class="price-tier">Starter</div>
+        <div class="price-amount">$29<span>/mo</span></div>
+        <div class="price-period">Billed monthly · 7-day free trial</div>
+        <div class="price-desc">Everything a solo pastor needs to lead well. Full John experience — without the team features.</div>
+        <ul class="price-features">
+          <li>Full AI chat with Dr. John</li>
+          <li>Sermon prep & all ceremonies</li>
+          <li>Member database (200 members)</li>
+          <li>Prayer request tracking</li>
+          <li>Document creation</li>
+          <li>Travel booking</li>
+          <li>Voice — "Hey John" wake word</li>
+          <li>1 user</li>
+        </ul>
+        <button class="price-btn ghost" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">Join Waitlist</button>
+      </div>
+
+      <div class="price-card featured">
+        <div class="price-badge">Most Popular</div>
+        <div class="price-tier">Pro</div>
+        <div class="price-amount">$79<span>/mo</span></div>
+        <div class="price-period">Billed monthly · 14-day free trial</div>
+        <div class="price-desc">For the established pastor with staff. Full automation, team coordination, and unlimited potential.</div>
+        <ul class="price-features">
+          <li>Everything in Starter</li>
+          <li>Up to 5 staff members</li>
+          <li>Unlimited member database</li>
+          <li>Daily staff encouragement delivery</li>
+          <li>Tuesday prayer reports — automated</li>
+          <li>Sunday report generation</li>
+          <li>Notification center & scheduling</li>
+          <li>Autonomous travel booking</li>
+          <li>Full administration suite</li>
+        </ul>
+        <button class="price-btn primary" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">Join Waitlist</button>
+      </div>
+
+      <div class="price-card" style="border-color:rgba(184,134,11,0.35);background:linear-gradient(135deg,rgba(184,134,11,0.04),rgba(184,134,11,0.01))">
+        <div class="price-badge" style="background:linear-gradient(135deg,#b8860b,#9a7009)">Ministry Plus</div>
+        <div class="price-tier">Ministry Plus</div>
+        <div class="price-amount" style="color:var(--gold)">$99<span>/mo</span></div>
+        <div class="price-period">Billed monthly · 14-day free trial</div>
+        <div class="price-desc">Everything unlocked. Built for the pastor leading a large, multi-staff church who needs John operating at full capacity.</div>
+        <ul class="price-features">
+          <li>Everything in Pro</li>
+          <li>Unlimited staff members</li>
+          <li>Unlimited member database</li>
+          <li>Priority AI response</li>
+          <li>Multi-campus support</li>
+          <li>Custom notification schedules</li>
+          <li>Full travel autonomy — book without confirmation</li>
+          <li>Dedicated onboarding call</li>
+          <li>Direct support line</li>
+        </ul>
+        <button class="price-btn ghost" style="border-color:rgba(184,134,11,0.4);color:var(--gold)" onmouseover="this.style.borderColor='var(--gold)'" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">Join Waitlist</button>
+      </div>
+  </div>
+</section>
+
+<!-- Final CTA -->
+<section class="final-cta">
+  <div class="final-inner">
+    <h2 class="final-h2 reveal">
+      Your congregation<br>
+      deserves a pastor<br>
+      who has <em>backup.</em>
+    </h2>
+    <p class="final-p reveal">
+      John is built by people who understand ministry — not just technology. 
+      Join the waitlist and we'll reach out personally before you sign up for anything.
+    </p>
+    <form class="final-form reveal" onsubmit="submitWaitlist(event,'final')">
+      <input class="final-input" type="email" id="final-email" placeholder="Your email address" required />
+      <button class="final-btn" type="submit">Join the Waitlist</button>
+    </form>
+    <div class="final-success" id="final-success">
+      You're on the list. We'll be in touch personally.
+    </div>
+    <p class="final-note reveal">We read every submission. Expect a personal email within 48 hours.</p>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-brand">
+    <span style="color:var(--orange)">♥</span>
+    <span class="footer-name">John</span>
+  </div>
+  <div class="footer-copy">© 2025 John Pastoral AI · Built for those who serve</div>
+</footer>
+
+<script>
+// ── Waitlist submissions ──
+async function submitWaitlist(e, source) {
+  e.preventDefault();
+  const email = document.getElementById(source + '-email').value.trim();
+  if (!email) return;
+
+  const btn = e.target.querySelector('button');
+  if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+
+  // Save to Supabase
+  try {
+    const result = await window.JohnDB.submitToWaitlist(email, source);
+    console.log('Waitlist result:', result);
+  } catch(err) {
+    console.error('Waitlist error:', err);
+  }
+
+  // Show success regardless
+  if (source === 'hero') {
+    document.querySelector('.hero-form').style.display = 'none';
+    document.getElementById('hero-success').style.display = 'block';
+  } else {
+    document.querySelector('.final-form').style.display = 'none';
+    document.getElementById('final-success').style.display = 'block';
+  }
+}
+
+// ── Scroll reveal ──
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 60);
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ── Nav shadow on scroll ──
+window.addEventListener('scroll', () => {
+  const nav = document.querySelector('nav');
+  nav.style.boxShadow = window.scrollY > 20
+    ? '0 2px 24px rgba(0,0,0,0.08)' : 'none';
+});
+</script>
+</body>
+</html>
